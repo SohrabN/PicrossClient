@@ -25,7 +25,7 @@ import javax.swing.border.LineBorder;
  * @author Sohrab.N
  */
 public class PicrossView extends JFrame {
-    Vector<String> ListUser;
+    Vector<String> ListUser = new Vector<>();
     BufferedReader input;
     PrintStream out;
     static Socket s;
@@ -184,7 +184,7 @@ public class PicrossView extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         timerLabel = new JLabel("");
         connect = new PiccrossNetworkModalVC(this);
-        consoleOutputTextArea = new JTextArea(24,30);
+        consoleOutputTextArea = new JTextArea(24, 30);
         scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
     }
@@ -200,7 +200,7 @@ public class PicrossView extends JFrame {
     public int startGUI(int gameSize) {
         String iconPath = "piccrossLogo.png";
         String imagePath = "piccrossNameMin.jpg";
-        gridSize=gameSize;
+        gridSize = gameSize;
         // creating new object of Picross class and storing it in mainFrame
         mainFrame = this;
 
@@ -265,7 +265,7 @@ public class PicrossView extends JFrame {
         consolePanel.add(scrollerScrollPane, BorderLayout.SOUTH);
 
         // console text area setup
-        consoleOutputTextArea.setPreferredSize(new Dimension(200, 400));
+        consoleOutputTextArea.setPreferredSize(new Dimension(500, 40000));
         consoleOutputTextArea.setEditable(false);
 
         consoleInput.addKeyListener(new textAreaListener());
@@ -342,6 +342,7 @@ public class PicrossView extends JFrame {
 //    public void showNego(String host,int port){
 //        consoleOutputTextArea.append("Negotiating connection to " + host + " on port " + port);
 //    }
+
     /**
      * This method will calculate the time that our game has been running and
      * returns it as string in proper format.
@@ -454,7 +455,8 @@ public class PicrossView extends JFrame {
             debugMode = 0;
             gameIsDone = true;
             mainFrame.dispose();
-            //mainFrame = new PicrossView();
+            mainFrame = new PicrossView();
+            SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(5);
 
         }
@@ -478,7 +480,7 @@ public class PicrossView extends JFrame {
             gridSize = 10;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame=new PicrossView();
+            mainFrame = new PicrossView();
             mainFrame.startGUI(10);
         }
     }
@@ -490,7 +492,7 @@ public class PicrossView extends JFrame {
             gridSize = 15;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame=new PicrossView();
+            mainFrame = new PicrossView();
             mainFrame.startGUI(15);
         }
     }
@@ -581,14 +583,13 @@ public class PicrossView extends JFrame {
             try {
                 s = new Socket();
                 s.connect(new InetSocketAddress(InetAddress.getByName(host), port), 10000);
-                //s.setSoTimeout(10000);
                 try {
                     consoleOutputTextArea.append("\nConnection Successful");
                     consoleOutputTextArea.append("\nWelcome to Sohrab's Picross Server.");
                     consoleOutputTextArea.append("\nUser '/help' for commands.\n");
                     //InputStream inStream = s.getInputStream();
                     input = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                    out = new PrintStream(s.getOutputStream(),true);
+                    out = new PrintStream(s.getOutputStream(), true);
                     String name = connect.getName();
                     out.println(name);
                     connected = true;
@@ -610,6 +611,10 @@ public class PicrossView extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
+
+                consoleInput.setText("/bye");
+                int keyCode = KeyEvent.VK_ENTER;
+                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
                 String userName = connect.getName();
                 System.out.println(userName + " has disconnected.");
                 out.println(userName + " has disconnected.");
@@ -635,48 +640,26 @@ public class PicrossView extends JFrame {
         @Override
         public void keyPressed(KeyEvent e) {
 
-            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (e.getKeyCode() == KeyEvent.VK_ENTER&&connected) {
                 String consoleText = consoleInput.getText();
                 if (checkMessage(consoleText) == 0) {
                     sendMessage(consoleText);
                 }
+                Dimension dimension=consoleOutputTextArea.getSize();
+                dimension.width=dimension.width+1;
+                dimension.height=dimension.height+1;
+                consoleOutputTextArea.setSize(dimension);
                 consoleInput.setText(null);
-//                String temp = consoleText;
-//                consoleInput.setText("");
-//                if (connected) {
-//                    if(consoleText.equals("/get")){
-//                        temp = temp.replace("/get", "");
-//
-//                    }
-//                    else if(consoleText.equals("/help")){
-//                        consoleOutputTextArea.append("HELP:\n/help: this message.\n/bye: disconnect.\n/who: shows the names of all connected players.\n/name : Rename yourself.\n/get: gets the current challenge game.");
-//                    }
-//                    else if (consoleText.startsWith("/name")) {
-//                        temp = temp.replace("/name", "");
-//                        if (temp.equals("")) {
-//                            System.out.println("Name is not provided");
-//                        } else {
-//                            temp = temp.substring(1);
-//                            String oldName = connect.getName();
-//                            connect.setName(temp);
-//                            try {
-//                                out = new PrintStream(s.getOutputStream());
-//                            } catch (IOException ex) {
-//                                ex.printStackTrace();
-//                            }
-//                            out.println(oldName + " renamed to " + temp);
-//                        }
-//                    } else if (consoleText.equals("/bye")) {
-//                        try {
-//                            out.println(connect.getName() + " has disconnected.");
-//                            s.close();
-//                        } catch (IOException ex) {
-//                            ex.printStackTrace();
-//                        }
-//                    }
-//                }else {
-//                    System.out.println("Must be connected");
-//                }
+                mainFrame.repaint();
+                mainFrame.revalidate();
+            }else if (e.getKeyCode() == KeyEvent.VK_ENTER&&!connected) {
+                String consoleText = consoleInput.getText();
+                if(consoleText.equals("/cls")){
+                    consoleOutputTextArea.setText(null);
+                }else{
+                    consoleOutputTextArea.append("NOT connected!\nIn order to interact with command prompt please connect to server to Picross Server.\n");
+                }
+                consoleInput.setText(null);
             }
         }
 
@@ -690,10 +673,8 @@ public class PicrossView extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (hover)
-                hover = false;
-            else
-                hover = true;
+            if (hover) hover = false;
+            else hover = true;
         }
     }
 
@@ -739,6 +720,8 @@ public class PicrossView extends JFrame {
         menu.addSeparator();
         // creating debug sub menu
         subMenu = new JMenu("Debug");
+        picLogo = new ImageIcon(this.getClass().getResource("DebugIcon.png"));
+        subMenu.setIcon(picLogo);
         // creating debug sub menu item 1
         menuItem = new JMenuItem("Debug Configuration 1");
         menuItem.addActionListener(new debugConfig1());
@@ -755,7 +738,7 @@ public class PicrossView extends JFrame {
         menu.addSeparator();
         // creating exit menu item
         menuItem = new JMenuItem("Exit");
-        picLogo = new ImageIcon(this.getClass().getResource("\\A3_Graphics\\piciconext.gif"));
+        picLogo = new ImageIcon(this.getClass().getResource("ExitIcon.png"));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new exit());
         ctrlVKeyStroke = KeyStroke.getKeyStroke("control Q");
@@ -765,9 +748,13 @@ public class PicrossView extends JFrame {
         menu = new JMenu("Networking");
         // creating solution menu item
         menuItemConnect = new JMenuItem("New Connection");
+        picLogo = new ImageIcon(this.getClass().getResource("ConnectIcon.png"));
+        menuItemConnect.setIcon(picLogo);
         menuItemConnect.addActionListener(new openConnection());
         menu.add(menuItemConnect);
         menuItemDisconnect = new JMenuItem("Disconnect");
+        picLogo = new ImageIcon(this.getClass().getResource("DisconnectIcon.png"));
+        menuItemDisconnect.setIcon(picLogo);
         menuItemDisconnect.addActionListener(new disconnect());
         menuItemDisconnect.setEnabled(false);
         menu.add(menuItemDisconnect);
@@ -777,7 +764,7 @@ public class PicrossView extends JFrame {
         menu = new JMenu("Help");
         // creating solution menu item
         menuItem = new JMenuItem("Solution");
-        picLogo = new ImageIcon(this.getClass().getResource("\\A3_Graphics\\piciconsol.gif"));
+        picLogo = new ImageIcon(this.getClass().getResource("ShowSolutionIcon.png"));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new showSolution());
         ctrlVKeyStroke = KeyStroke.getKeyStroke("alt S");
@@ -785,7 +772,7 @@ public class PicrossView extends JFrame {
         menu.add(menuItem);
         // creating about menu item
         menuItem = new JMenuItem("About");
-        picLogo = new ImageIcon(this.getClass().getResource("\\A3_Graphics\\piciconabt.gif"));
+        picLogo = new ImageIcon(this.getClass().getResource("AboutIcon.png"));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new showAbout());
         ctrlVKeyStroke = KeyStroke.getKeyStroke("alt S");
@@ -834,6 +821,7 @@ public class PicrossView extends JFrame {
     public static boolean getGameIsDone() {
         return gameIsDone;
     }
+
     public void sendMessage(String message) {
 
         out.println(message);
@@ -841,27 +829,17 @@ public class PicrossView extends JFrame {
         SwingUtilities.updateComponentTreeUI(mainFrame);
 
     }
+
     public int checkMessage(String message) {
 
-        /*if help just print help message*/
-        if (message.contains("/help")) {
-            consoleOutputTextArea.append("/help:this message\n/bye: disconnect\n/who: shows name of all connected players\n/name (name): Rename yourslef\n");
-            return 1;
-        }
-        /*if bye then tell server to kick user*/
         if (message.contains("/bye")) {
             consoleOutputTextArea.append("Disconnected from server.\n");
             connected = false;
             new disconnect();
             return 0;
         }
-        /*if who then look at list for all who are in server*/
-        if (message.contains("/who")) {
-            /*while list is not null keep printing user names*/
-            for (String user : ListUser) {
-                consoleOutputTextArea.append("user:" + user +"\n");
-            }
-            return 1;
+        if(message.equals("/cls")){
+            consoleOutputTextArea.setText(null);
         }
         return 0;
     }
@@ -874,28 +852,33 @@ public class PicrossView extends JFrame {
     public static void setGameIsDone(boolean gameIsDone) {
         PicrossView.gameIsDone = gameIsDone;
     }
+
     class PicrossNetworkController extends Thread {
         public void run() {
             String message;
             /*while thread is not Interrupted try to parse message*/
-            while(!Thread.currentThread().isInterrupted()&&connected){
+            while (!Thread.currentThread().isInterrupted() ) {
                 try {
                     message = input.readLine();
                     /*if recived message not null check if user can be found and print message*/
-                    if(message != null){
+                    if (message != null) {
 						/*see if frist char is "[" acts as a flag that a user list is in message
 		            	  I got this idea from a server example online*/
-                        if (message.charAt(0) == '[') {
-                            message = message.substring(1, message.length()-1);
-                            ListUser = new Vector<String>(Arrays.asList(message.split(", ")));
-                        } else {
-                            consoleOutputTextArea.append(message+ "\n");
+                        try {
+                            if (message.charAt(0) == '[') {
+                                message = message.substring(1, message.length() - 1);
+                                ListUser = new Vector<String>(Arrays.asList(message.split(", ")));
+                            } else {
+                                consoleOutputTextArea.append(message + "\n");
+
+                            }
+                        }catch (StringIndexOutOfBoundsException e){
+
                         }
                     }
-                }catch (SocketException ex){
+                } catch (SocketException ex) {
 
                 }
-                /*catch any issues while parsing message*/
                 catch (IOException ex) {
                     ex.printStackTrace();
                     consoleOutputTextArea.append("message failed to be parsed");

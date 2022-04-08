@@ -215,22 +215,34 @@ public class PicrossModel {
                                 pointTextField.setBackground(Color.WHITE);
                                 pointTextField.setText("   " + points + "/" + PicrossView.getGridSize() * PicrossView.getGridSize() + "  ");
                                 if (trueSelected == trueButtons) {
+                                    Object[] buttons = { "Yes", "No"};
                                     PicrossView.setGameIsDone(true);
                                     gameDone();
                                     if (points == trueButtons) {
                                         points = PicrossView.getGridSize() * PicrossView.getGridSize();
                                         pointTextField.setText("   " + points + "/" + PicrossView.getGridSize() * PicrossView.getGridSize() + "  ");
                                         ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(
-                                                this.getClass().getResource("\\A3_Graphics\\gamepicwinner.png")));
+                                                this.getClass().getResource("gamepicwinner.png")));
                                         JLabel picWinner = new JLabel(imageWinner);
-                                        JOptionPane.showMessageDialog(null, picWinner, "Congrats!",
-                                                JOptionPane.PLAIN_MESSAGE, null);
+                                        JOptionPane.showOptionDialog(null,picWinner,
+                                                "Congrats!",
+                                                JOptionPane.YES_NO_CANCEL_OPTION,
+                                                JOptionPane.PLAIN_MESSAGE,
+                                                null,//do not use a custom Icon
+                                                buttons,//the titles of buttons
+                                                buttons[1]);//default button title
                                     } else {
-                                        ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(
-                                                this.getClass().getResource("\\A3_Graphics\\gamepicend.png")));
-                                        JLabel picWinner = new JLabel(imageWinner);
-                                        JOptionPane.showMessageDialog(null, picWinner, "Congrats!",
-                                                JOptionPane.PLAIN_MESSAGE, null);
+                                        ImageIcon imageEnd = new ImageIcon(Objects.requireNonNull(
+                                                this.getClass().getResource("gamepicend.png")));
+                                        JLabel picEnd = new JLabel(imageEnd);
+
+                                        JOptionPane.showOptionDialog(null,picEnd,
+                                                "Game Over!",
+                                                JOptionPane.YES_NO_CANCEL_OPTION,
+                                                JOptionPane.PLAIN_MESSAGE,
+                                                null,//do not use a custom Icon
+                                                buttons,//the titles of buttons
+                                                buttons[1]);//default button title
                                     }
 
                                 }
@@ -273,11 +285,17 @@ public class PicrossModel {
                         if (gridSelected == PicrossView.getGridSize() * PicrossView.getGridSize()) {
                             PicrossView.setGameIsDone(true);
                             gameDone();
-                            ImageIcon imageWinner = new ImageIcon(Objects
-                                    .requireNonNull(this.getClass().getResource("\\A3_Graphics\\gamepicend.png")));
+                            Object[] buttons = { "Yes", "No"};
+                            ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(
+                                    this.getClass().getResource("gamepicwinner.png")));
                             JLabel picWinner = new JLabel(imageWinner);
-                            JOptionPane.showMessageDialog(null, picWinner, "Congrats!", JOptionPane.PLAIN_MESSAGE,
-                                    null);
+                            JOptionPane.showOptionDialog(null,picWinner,
+                                    "Congrats!",
+                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                    JOptionPane.PLAIN_MESSAGE,
+                                    null,//do not use a custom Icon
+                                    buttons,//the titles of buttons
+                                    buttons[1]);//default button title
 
                         }
                         gridBoolSelected[i][j] = true;
@@ -288,10 +306,6 @@ public class PicrossModel {
                     if (PicrossView.getHover()&&!PicrossView.getGameIsDone()) {
                         if (!gridBoolSelected[i][j]) {
                             gridButtons[i][j].setBackground(new Color(232, 203, 93));
-//                            for(int k=1;k<PicrossView.getGridSize();k++){
-//                                gridButtons[i+k][j].setBackground(new Color(232, 213, 155, 255));
-//                                gridButtons[i-k][j].setBackground(new Color(232, 213, 155, 255));
-//                            }
                         }
                     }
                 }
