@@ -3,13 +3,18 @@ package piccross;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Vector;
 
 /**
  * This class will have all the logic related to our game which will intact with
@@ -18,6 +23,7 @@ import java.util.Random;
  * @author Sohrab.N
  */
 public class PicrossModel {
+    int count;
 
     /**
      * Represents if mark check box is set or not.
@@ -32,7 +38,7 @@ public class PicrossModel {
     /**
      * Flag that used for our hover option.
      */
-   // private boolean enteredFlag;
+    // private boolean enteredFlag;
 
     /**
      * Represents the true grid which will be true or false depending on random
@@ -116,6 +122,7 @@ public class PicrossModel {
      *                  predefinded games.
      */
     public void setup(int debugMode) {
+        count=0;
         intArr = new int[PicrossView.getGridSize()];
         gridButtons = new JButton[PicrossView.getGridSize() + 1][PicrossView.getGridSize() + 1];
         boolean debug = PicrossView.getDebug();
@@ -137,8 +144,7 @@ public class PicrossModel {
             for (int j = 1; j < PicrossView.getGridSize() + 1; j++) {
 
                 gridBool[i][j] = setup(i, j, debugMode);
-                if (gridBool[i][j])
-                    trueButtons++;
+                if (gridBool[i][j]) trueButtons++;
             }
         }
         setupHints();
@@ -178,27 +184,33 @@ public class PicrossModel {
                 case 1:// debug sub menu predefined game 1
                     if (i == 1 || j == 1 || i == 5 || j == 5) {
                         bool = true;
-                    } else {
-                        bool = false;
                     }
                     break;
                 case 2:// debug sub menu predefined game 2
                     if (PicrossView.getGridSize() % 2 == 0) {
                         if (i == (PicrossView.getGridSize() / 2) && j == (PicrossView.getGridSize() / 2)) {
                             bool = true;
-                        } else {
-                            bool = false;
                         }
                     } else {
                         if (i == ((PicrossView.getGridSize() / 2) + 1) && j == ((PicrossView.getGridSize() / 2) + 1)) {
                             bool = true;
-                        } else {
-                            bool = false;
                         }
                     }
                     break;
                 case 3:// debug sub menu predefined game 3
-                    bool = false;
+                    break;
+                case 4:
+                    String game = PicrossView.getGameBoolVec();
+                    String [] messageArr=game.split(",");
+                    if (count<messageArr.length) {
+                        if (messageArr[count].equals("1")) {
+                            bool = true;
+                            count++;
+                        } else if (messageArr[count].equals("0")) {
+                            count++;
+                        }
+                    }
+
                     break;
             }
 
@@ -215,43 +227,47 @@ public class PicrossModel {
                                 pointTextField.setBackground(Color.WHITE);
                                 pointTextField.setText("   " + points + "/" + PicrossView.getGridSize() * PicrossView.getGridSize() + "  ");
                                 if (trueSelected == trueButtons) {
-                                    Object[] buttons = { "Yes", "No"};
+                                    Object[] buttons = {"Yes", "No"};
                                     PicrossView.setGameIsDone(true);
                                     gameDone();
                                     if (points == trueButtons) {
                                         points = PicrossView.getGridSize() * PicrossView.getGridSize();
                                         pointTextField.setText("   " + points + "/" + PicrossView.getGridSize() * PicrossView.getGridSize() + "  ");
-                                        ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(
-                                                this.getClass().getResource("gamepicwinner.png")));
+                                        ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicwinner.png")));
                                         JLabel picWinner = new JLabel(imageWinner);
-                                        JOptionPane.showOptionDialog(null,picWinner,
-                                                "Congrats!",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.PLAIN_MESSAGE,
-                                                null,//do not use a custom Icon
+                                        int dialogResult = JOptionPane.showOptionDialog(null, picWinner, "Congrats!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
                                                 buttons,//the titles of buttons
                                                 buttons[1]);//default button title
+                                        if (dialogResult == JOptionPane.YES_OPTION) {
+                                            try {
+                                                sendGameToServer();
+                                            } catch (IOException ex) {
+                                                ex.printStackTrace();
+                                            }
+                                        }
                                     } else {
-                                        ImageIcon imageEnd = new ImageIcon(Objects.requireNonNull(
-                                                this.getClass().getResource("gamepicend.png")));
+                                        ImageIcon imageEnd = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicend.png")));
                                         JLabel picEnd = new JLabel(imageEnd);
 
-                                        JOptionPane.showOptionDialog(null,picEnd,
-                                                "Game Over!",
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.PLAIN_MESSAGE,
-                                                null,//do not use a custom Icon
+                                        int dialogResult = JOptionPane.showOptionDialog(null, picEnd, "Game Over!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
                                                 buttons,//the titles of buttons
                                                 buttons[1]);//default button title
+                                        if (dialogResult == JOptionPane.YES_OPTION) {
+                                            try {
+                                                sendGameToServer();
+                                            } catch (IOException ex) {
+                                                ex.printStackTrace();
+                                            }
+                                        }
                                     }
+
 
                                 }
                             } else {
                                 gridButtons[i][j].setBackground(new Color(148, 216, 243));
                                 Image img = null;
                                 try {
-                                    img = ImageIO.read(
-                                            Objects.requireNonNull(getClass().getResource("\\A3_Graphics\\xmark.png")));
+                                    img = ImageIO.read(Objects.requireNonNull(getClass().getResource("\\A3_Graphics\\xmark.png")));
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }
@@ -264,8 +280,7 @@ public class PicrossModel {
                                 gridButtons[i][j].setBackground(new Color(220, 220, 220));
                                 Image img = null;
                                 try {
-                                    img = ImageIO.read(
-                                            Objects.requireNonNull(getClass().getResource("\\A3_Graphics\\xmark.png")));
+                                    img = ImageIO.read(Objects.requireNonNull(getClass().getResource("\\A3_Graphics\\xmark.png")));
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }
@@ -280,20 +295,14 @@ public class PicrossModel {
                                 pointTextField.setText("   " + points + "/" + PicrossView.getGridSize() * PicrossView.getGridSize() + "  ");
                             }
                         }
-                        if (!gridBoolSelected[i][j])
-                            gridSelected++;
+                        if (!gridBoolSelected[i][j]) gridSelected++;
                         if (gridSelected == PicrossView.getGridSize() * PicrossView.getGridSize()) {
                             PicrossView.setGameIsDone(true);
                             gameDone();
-                            Object[] buttons = { "Yes", "No"};
-                            ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(
-                                    this.getClass().getResource("gamepicwinner.png")));
+                            Object[] buttons = {"Yes", "No"};
+                            ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicwinner.png")));
                             JLabel picWinner = new JLabel(imageWinner);
-                            JOptionPane.showOptionDialog(null,picWinner,
-                                    "Congrats!",
-                                    JOptionPane.YES_NO_CANCEL_OPTION,
-                                    JOptionPane.PLAIN_MESSAGE,
-                                    null,//do not use a custom Icon
+                            JOptionPane.showOptionDialog(null, picWinner, "Congrats!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
                                     buttons,//the titles of buttons
                                     buttons[1]);//default button title
 
@@ -303,7 +312,7 @@ public class PicrossModel {
                 }
 
                 public void mouseEntered(MouseEvent e) {
-                    if (PicrossView.getHover()&&!PicrossView.getGameIsDone()) {
+                    if (PicrossView.getHover() && !PicrossView.getGameIsDone()) {
                         if (!gridBoolSelected[i][j]) {
                             gridButtons[i][j].setBackground(new Color(232, 203, 93));
                         }
@@ -311,8 +320,8 @@ public class PicrossModel {
                 }
 
                 public void mouseExited(MouseEvent e) {
-                    if (PicrossView.getHover()&&!PicrossView.getGameIsDone()) {
-                        if(!showSolution) {
+                    if (PicrossView.getHover() && !PicrossView.getGameIsDone()) {
+                        if (!showSolution) {
                             if (gridBoolSelected[i][j]) {
                                 if (gridBool[i][j]) {
                                     gridButtons[i][j].setBackground(new Color(148, 216, 243));
@@ -320,8 +329,7 @@ public class PicrossModel {
                                     gridButtons[i][j].setBackground(new Color(220, 220, 220));
                                     BufferedImage img = null;
                                     try {
-                                        img = ImageIO.read(
-                                                Objects.requireNonNull(getClass().getResource("\\A3_Graphics\\xmark.png")));
+                                        img = ImageIO.read(Objects.requireNonNull(getClass().getResource("\\A3_Graphics\\xmark.png")));
                                     } catch (IOException ex) {
                                         ex.printStackTrace();
                                     }
@@ -330,14 +338,14 @@ public class PicrossModel {
                             } else {
                                 gridButtons[i][j].setBackground(Color.WHITE);
                             }
-                        }else{
-                            if(gridBool[i][j]&&gridBoolSelected[i][j]){
+                        } else {
+                            if (gridBool[i][j] && gridBoolSelected[i][j]) {
                                 gridButtons[i][j].setBackground(new Color(148, 216, 243));
-                            }else if(gridBool[i][j]){
+                            } else if (gridBool[i][j]) {
                                 gridButtons[i][j].setBackground(Color.GREEN);
-                            }else if(gridBoolSelected[i][j]&&!gridBool[i][j]){
+                            } else if (gridBoolSelected[i][j] && !gridBool[i][j]) {
                                 gridButtons[i][j].setBackground(new Color(220, 220, 220));
-                            }else{
+                            } else {
                                 gridButtons[i][j].setBackground(Color.WHITE);
                             }
                         }
@@ -349,6 +357,28 @@ public class PicrossModel {
             });
         }
         return bool;
+    }
+
+    public synchronized void sendGameToServer() throws IOException {
+        Socket socket = PicrossView.getSocket();
+        if(socket==null){
+            PicrossView.getConsoleOutputTextArea().append("ALERT: You must be connected to Picross Server in order to upload score.");
+        }else {
+            PrintStream out = new PrintStream(socket.getOutputStream(), true);
+            StringBuilder gameStream = new StringBuilder("[");
+            for (int i = 1; i < PicrossView.getGridSize()+1; i++) {
+                for (int j = 1; j < PicrossView.getGridSize()+1; j++) {
+                    if (gridBool[i][j]) {
+                        gameStream.append("1,");
+                    } else {
+                        gameStream.append("0,");
+                    }
+                }
+            }
+            gameStream.append("]");
+            gameStream.append("Points:").append(points).append(",Time:").append(PicrossView.getTimeElapsed());
+            out.println(gameStream);
+        }
     }
 
     public void addHints() {
@@ -397,23 +427,19 @@ public class PicrossModel {
         for (int i = 1; i < PicrossView.getGridSize() + 1; i++) {
             for (int j = 1; j < PicrossView.getGridSize() + 1; j++) {
                 if (gridBool[i][j]) {
-                    if (debug)
-                        System.out.println(i + "," + j + " is true");
+                    if (debug) System.out.println(i + "," + j + " is true");
                     intArr[k] = ++value;
                     if (gridBool[0].length > (j + 1) && gridBool[i][j + 1]) {
-                        if (debug)
-                            System.out.println(i + "," + (j + 1) + " is true");
+                        if (debug) System.out.println(i + "," + (j + 1) + " is true");
                         intArr[k] = ++value;
                         j++;
                     } else {
-                        if (gridBool[0].length > (j + 1) && debug)
-                            System.out.println(i + "," + (j + 1) + " is false");
+                        if (gridBool[0].length > (j + 1) && debug) System.out.println(i + "," + (j + 1) + " is false");
                         k++;
                         value = 0;
                     }
                 } else {
-                    if (debug)
-                        System.out.println(i + "," + j + " is false");
+                    if (debug) System.out.println(i + "," + j + " is false");
                     k++;
                     value = 0;
                 }
@@ -432,23 +458,19 @@ public class PicrossModel {
         for (int i = 1; i < PicrossView.getGridSize() + 1; i++) {
             for (int j = 1; j < PicrossView.getGridSize() + 1; j++) {
                 if (gridBool[j][i]) {
-                    if (debug)
-                        System.out.println(j + "," + i + " is true");
+                    if (debug) System.out.println(j + "," + i + " is true");
                     intArr[k] = ++value;
                     if (gridBool[0].length > (j + 1) && gridBool[j + 1][i]) {
-                        if (debug)
-                            System.out.println((j + 1) + "," + i + " is true");
+                        if (debug) System.out.println((j + 1) + "," + i + " is true");
                         intArr[k] = ++value;
                         j++;
                     } else {
-                        if (gridBool[0].length > (j + 1) && debug)
-                            System.out.println((j + 1) + "," + i + " is false");
+                        if (gridBool[0].length > (j + 1) && debug) System.out.println((j + 1) + "," + i + " is false");
                         k++;
                         value = 0;
                     }
                 } else {
-                    if (debug)
-                        System.out.println(j + "," + i + " is false");
+                    if (debug) System.out.println(j + "," + i + " is false");
                     k++;
                     value = 0;
                 }
@@ -471,10 +493,8 @@ public class PicrossModel {
      * which means solution will go away.
      */
     public void showSolution() {
-        if (showSolution)
-            showSolution = false;
-        else
-            showSolution = true;
+        if (showSolution) showSolution = false;
+        else showSolution = true;
         for (int i = 1; i < PicrossView.getGridSize() + 1; i++) {
             for (int j = 1; j < PicrossView.getGridSize() + 1; j++) {
                 // setups each button and adds MouseEvent listener to it.
@@ -484,10 +504,8 @@ public class PicrossModel {
                     }
                 } else {
                     if (gridBool[i][j]) {
-                        if (gridBoolSelected[i][j])
-                            gridButtons[i][j].setBackground(new Color(148, 216, 243));
-                        else
-                            gridButtons[i][j].setBackground(Color.WHITE);
+                        if (gridBoolSelected[i][j]) gridButtons[i][j].setBackground(new Color(148, 216, 243));
+                        else gridButtons[i][j].setBackground(Color.WHITE);
 
                     }
                 }

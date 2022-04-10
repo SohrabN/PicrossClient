@@ -13,9 +13,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.Vector;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
@@ -25,10 +22,10 @@ import javax.swing.border.LineBorder;
  * @author Sohrab.N
  */
 public class PicrossView extends JFrame {
-    Vector<String> ListUser = new Vector<>();
+    static String gameBoolVec;
     BufferedReader input;
-    PrintStream out;
-    static Socket s;
+    static PrintStream out;
+    static Socket socket;
     static PiccrossNetworkModalVC connect;
     boolean connected = false;
     Thread thread;
@@ -124,7 +121,7 @@ public class PicrossView extends JFrame {
      * consoleOutputTextArea will display outputs to the player. it will be used inside
      * scrollerScrollPane to add scrolling ability to it.
      */
-    private JTextArea consoleOutputTextArea;
+    private static JTextArea consoleOutputTextArea;
 
     /**
      * scrollerScrollPane will hold consoleOutputTextArea and will add scroll ability to
@@ -147,7 +144,7 @@ public class PicrossView extends JFrame {
     /**
      * used to track the start time of time.
      */
-    private long startTimer = System.currentTimeMillis();
+    private static long startTimer = System.currentTimeMillis();
 
     /**
      * used to indicate if the game is finished.
@@ -181,11 +178,29 @@ public class PicrossView extends JFrame {
         setJMenuBar(menuBar);
         picrossModel = new PicrossModel();
         // Exiting the program if mainFrame is close
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         timerLabel = new JLabel("");
         connect = new PiccrossNetworkModalVC(this);
         consoleOutputTextArea = new JTextArea(24, 30);
         scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (connected) {
+                    consoleInput.setText("/bye");
+                    consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                    try {
+                        socket.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    connected = false;
+                    menuItemConnect.setEnabled(true);
+                    menuItemDisconnect.setEnabled(false);
+                }
+                System.exit(0);
+            }
+        });
 
     }
 
@@ -339,9 +354,6 @@ public class PicrossView extends JFrame {
             System.out.println("Exception in Thread Sleep : " + e);
         }
     }
-//    public void showNego(String host,int port){
-//        consoleOutputTextArea.append("Negotiating connection to " + host + " on port " + port);
-//    }
 
     /**
      * This method will calculate the time that our game has been running and
@@ -350,7 +362,7 @@ public class PicrossView extends JFrame {
      * @return String is returned to the calling which will be the time since game
      * has been started.
      */
-    public String getTimeElapsed() {
+    public static String getTimeElapsed() {
         // getting time since the game has been started
         long elapsedTime = System.currentTimeMillis() - startTimer;
         // converting millisecond to second
@@ -367,6 +379,14 @@ public class PicrossView extends JFrame {
         if (hours.length() < 2) hours = "0" + hours;
         // returning the timer in correct format
         return hours + ":" + minutes + ":" + seconds;
+    }
+
+    public static String getGameBoolVec() {
+        return gameBoolVec;
+    }
+
+    public static JTextArea getConsoleOutputTextArea() {
+        return consoleOutputTextArea;
     }
 
     /**
@@ -452,6 +472,18 @@ public class PicrossView extends JFrame {
     private class newGame implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (connected) {
+                consoleInput.setText("/bye");
+                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                connected = false;
+                menuItemConnect.setEnabled(true);
+                menuItemDisconnect.setEnabled(false);
+            }
             debugMode = 0;
             gameIsDone = true;
             mainFrame.dispose();
@@ -469,6 +501,7 @@ public class PicrossView extends JFrame {
             gridSize = 5;
             gameIsDone = true;
             mainFrame.dispose();
+            mainFrame = new PicrossView();
             mainFrame.startGUI(5);
         }
     }
@@ -506,6 +539,18 @@ public class PicrossView extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (connected) {
+                consoleInput.setText("/bye");
+                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                connected = false;
+                menuItemConnect.setEnabled(true);
+                menuItemDisconnect.setEnabled(false);
+            }
             System.exit(0);
         }
     }
@@ -564,45 +609,61 @@ public class PicrossView extends JFrame {
         }
     }
 
-    private class openConnection implements ActionListener {
+    private class openConnection extends Thread implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            Connect connect = new Connect();
+            Thread thread = new Thread(connect);
+            thread.start();
+        }
 
-            Point thisLocation = getLocation();
-            Dimension parentSize = getSize();
-            Dimension modalSize = connect.getSize();
-            int offsetX = (parentSize.width - modalSize.width) / 2 + thisLocation.x;
-            int offsetY = (parentSize.height - modalSize.height) / 2 + thisLocation.y;
-            connect.setLocation(offsetX, offsetY);
-            connect.setVisible(true);
-            int port = connect.getPort();
-            String host = connect.getAddress();
-            consoleOutputTextArea.setText("Negotiating connection to " + host + " on port " + port);
+        private class Connect implements Runnable {
 
-            try {
-                s = new Socket();
-                s.connect(new InetSocketAddress(InetAddress.getByName(host), port), 10000);
-                try {
-                    consoleOutputTextArea.append("\nConnection Successful");
-                    consoleOutputTextArea.append("\nWelcome to Sohrab's Picross Server.");
-                    consoleOutputTextArea.append("\nUser '/help' for commands.\n");
-                    //InputStream inStream = s.getInputStream();
-                    input = new BufferedReader(new InputStreamReader(s.getInputStream()));
-                    out = new PrintStream(s.getOutputStream(), true);
-                    String name = connect.getName();
-                    out.println(name);
-                    connected = true;
-                    menuItemConnect.setEnabled(false);
-                    menuItemDisconnect.setEnabled(true);
-                    thread = new PicrossNetworkController();
-                    thread.start();
+            @Override
+            public void run() {
+                Point thisLocation = getLocation();
+                Dimension parentSize = getSize();
+                Dimension modalSize = connect.getSize();
+                int offsetX = (parentSize.width - modalSize.width) / 2 + thisLocation.x;
+                int offsetY = (parentSize.height - modalSize.height) / 2 + thisLocation.y;
+                connect.setLocation(offsetX, offsetY);
+                connect.setVisible(true);
+                int port = connect.getPort();
+                String host = connect.getAddress();
+                if (port != -1) {
+                    consoleOutputTextArea.append("Negotiating connection to " + host + " on port " + port + "\n");
+                    try {
+                        socket = new Socket();
+                        socket.connect(new InetSocketAddress(InetAddress.getByName(host), port), 10000);
+                        try {
+                            consoleOutputTextArea.append("Connection Successful\n");
+                            consoleOutputTextArea.append("Welcome to Sohrab's Picross Server.\n");
+                            consoleOutputTextArea.append("User '/help' for commands.\n");
+                            input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                            out = new PrintStream(socket.getOutputStream(), true);
+                            String name = connect.getName();
+                            out.println(name);
+                            connected = true;
+                            menuItemConnect.setEnabled(false);
+                            menuItemDisconnect.setEnabled(true);
+                            thread = new PicrossNetworkController();
+                            thread.start();
 
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    } catch (SocketTimeoutException ex) {
+                        consoleOutputTextArea.append("ALERT: Connection Timeout!\nPlease make sure IP or hostname entered is correct.\n");
+                    } catch (UnknownHostException ex) {
+                        consoleOutputTextArea.append("ALERT: hostname entered for server is not correct!\nALERT: Please try to connect again and enter correct hostname or IP.\n");
+                    } catch (ConnectException ex) {
+                        consoleOutputTextArea.append("ALERT: Connection refused!\nALERT: Please make sure server is running and port " + port + " is not blocked by firewall.\n");
+                    } catch (Exception ex) {
+                        consoleOutputTextArea.append("ERR: General error while trying to connect to server.\nPlease report this issue and behaviour to programmer to patch!\n");
+                        ex.printStackTrace();
+                    }
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
             }
         }
     }
@@ -616,9 +677,7 @@ public class PicrossView extends JFrame {
                 int keyCode = KeyEvent.VK_ENTER;
                 consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
                 String userName = connect.getName();
-                System.out.println(userName + " has disconnected.");
-                out.println(userName + " has disconnected.");
-                s.close();
+                socket.close();
                 connected = false;
                 menuItemConnect.setEnabled(true);
                 menuItemDisconnect.setEnabled(false);
@@ -640,23 +699,23 @@ public class PicrossView extends JFrame {
         @Override
         public void keyPressed(KeyEvent e) {
 
-            if (e.getKeyCode() == KeyEvent.VK_ENTER&&connected) {
+            if (e.getKeyCode() == KeyEvent.VK_ENTER && connected) {
                 String consoleText = consoleInput.getText();
                 if (checkMessage(consoleText) == 0) {
                     sendMessage(consoleText);
                 }
-                Dimension dimension=consoleOutputTextArea.getSize();
-                dimension.width=dimension.width+1;
-                dimension.height=dimension.height+1;
+                Dimension dimension = consoleOutputTextArea.getSize();
+                dimension.width = dimension.width + 1;
+                dimension.height = dimension.height + 1;
                 consoleOutputTextArea.setSize(dimension);
                 consoleInput.setText(null);
                 mainFrame.repaint();
                 mainFrame.revalidate();
-            }else if (e.getKeyCode() == KeyEvent.VK_ENTER&&!connected) {
+            } else if (e.getKeyCode() == KeyEvent.VK_ENTER && !connected) {
                 String consoleText = consoleInput.getText();
-                if(consoleText.equals("/cls")){
+                if (consoleText.equals("/cls")) {
                     consoleOutputTextArea.setText(null);
-                }else{
+                } else {
                     consoleOutputTextArea.append("NOT connected!\nIn order to interact with command prompt please connect to server to Picross Server.\n");
                 }
                 consoleInput.setText(null);
@@ -813,6 +872,11 @@ public class PicrossView extends JFrame {
         return hover;
     }
 
+    public static Socket getSocket() {
+        return socket;
+    }
+
+
     /**
      * This method is a getter for gameIsDone variable.
      *
@@ -835,11 +899,37 @@ public class PicrossView extends JFrame {
         if (message.contains("/bye")) {
             consoleOutputTextArea.append("Disconnected from server.\n");
             connected = false;
-            new disconnect();
+            if (connected) {
+                consoleInput.setText("/bye");
+                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                connected = false;
+                menuItemConnect.setEnabled(true);
+                menuItemDisconnect.setEnabled(false);
+            }
             return 0;
         }
-        if(message.equals("/cls")){
+        if (message.equals("/cls")) {
             consoleOutputTextArea.setText(null);
+            return 1;
+        }
+        if (message.equals("/upload")) {
+            try {
+                picrossModel.sendGameToServer();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return 1;
+        }
+        if (message.startsWith("[1") || message.startsWith("[0")) {
+
+            message = message.substring(1, message.length() - 2);
+            System.out.println(message);
+            return 1;
         }
         return 0;
     }
@@ -857,7 +947,7 @@ public class PicrossView extends JFrame {
         public void run() {
             String message;
             /*while thread is not Interrupted try to parse message*/
-            while (!Thread.currentThread().isInterrupted() ) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     message = input.readLine();
                     /*if recived message not null check if user can be found and print message*/
@@ -865,25 +955,43 @@ public class PicrossView extends JFrame {
 						/*see if frist char is "[" acts as a flag that a user list is in message
 		            	  I got this idea from a server example online*/
                         try {
-                            if (message.charAt(0) == '[') {
+                            if (message.startsWith("[1") || message.startsWith("[0")) {
                                 message = message.substring(1, message.length() - 1);
-                                ListUser = new Vector<String>(Arrays.asList(message.split(", ")));
+                                gameBoolVec = message;
+                                debugMode = 4;
+                                gameIsDone = true;
+                                mainFrame.dispose();
+                                mainFrame = new PicrossView();
+                                mainFrame.startGUI(5);
                             } else {
                                 consoleOutputTextArea.append(message + "\n");
 
                             }
-                        }catch (StringIndexOutOfBoundsException e){
+                        } catch (StringIndexOutOfBoundsException e) {
 
                         }
                     }
                 } catch (SocketException ex) {
 
-                }
-                catch (IOException ex) {
+                } catch (IOException ex) {
                     ex.printStackTrace();
                     consoleOutputTextArea.append("message failed to be parsed");
                 }
             }
+            if (connected) {
+                consoleInput.setText("/bye");
+                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                connected = false;
+                menuItemConnect.setEnabled(true);
+                menuItemDisconnect.setEnabled(false);
+            }
+
         }
+
     }
 }
