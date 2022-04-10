@@ -359,7 +359,7 @@ public class PicrossModel {
         return bool;
     }
 
-    public synchronized void sendGameToServer() throws IOException {
+    public void sendGameToServer() throws IOException {
         Socket socket = PicrossView.getSocket();
         if(socket==null){
             PicrossView.getConsoleOutputTextArea().append("ALERT: You must be connected to Picross Server in order to upload score.");

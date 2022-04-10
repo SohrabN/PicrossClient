@@ -204,6 +204,43 @@ public class PicrossView extends JFrame {
 
     }
 
+    public PicrossView(Socket socket,JTextArea consoleOutputTextArea) {
+        // setting name of frame
+        super("Picross 3.0");
+        PicrossView.consoleOutputTextArea.setText(consoleOutputTextArea.getText());
+        PicrossView.socket=socket;
+        connected=true;
+        menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+        picrossModel = new PicrossModel();
+        // Exiting the program if mainFrame is close
+        //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        timerLabel = new JLabel("");
+        connect = new PiccrossNetworkModalVC(this);
+        consoleOutputTextArea = new JTextArea(24, 30);
+        scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (connected) {
+                    consoleInput.setText("/bye");
+                    consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                    try {
+                        socket.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    connected = false;
+                    menuItemConnect.setEnabled(true);
+                    menuItemDisconnect.setEnabled(false);
+                }
+                System.exit(0);
+            }
+        });
+
+    }
+
+
 
     /**
      * This method will created a new frame, setups the the frame and the grid and
@@ -232,6 +269,10 @@ public class PicrossView extends JFrame {
         gameIsDone = false;
         // sets up the menu bar
         mainFrame.buildMenu();
+        if (connected){
+            menuItemDisconnect.setEnabled(true);
+            menuItemConnect.setEnabled(false);
+        }
         // sets up the 5x5 grid
         picrossModel.setup(debugMode);
         JPanel gameGrid = picrossModel.getGridPanel();
@@ -280,7 +321,7 @@ public class PicrossView extends JFrame {
         consolePanel.add(scrollerScrollPane, BorderLayout.SOUTH);
 
         // console text area setup
-        consoleOutputTextArea.setPreferredSize(new Dimension(500, 40000));
+        consoleOutputTextArea.setPreferredSize(new Dimension(500, 400));
         consoleOutputTextArea.setEditable(false);
 
         consoleInput.addKeyListener(new textAreaListener());
@@ -472,22 +513,22 @@ public class PicrossView extends JFrame {
     private class newGame implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (connected) {
-                consoleInput.setText("/bye");
-                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
-                try {
-                    socket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-                connected = false;
-                menuItemConnect.setEnabled(true);
-                menuItemDisconnect.setEnabled(false);
-            }
+//            if (connected) {
+//                consoleInput.setText("/bye");
+//                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+//                try {
+//                    socket.close();
+//                } catch (IOException ex) {
+//                    ex.printStackTrace();
+//                }
+//                connected = false;
+//                menuItemConnect.setEnabled(true);
+//                menuItemDisconnect.setEnabled(false);
+//            }
             debugMode = 0;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
+            mainFrame = new PicrossView(socket,consoleOutputTextArea);
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(5);
 
