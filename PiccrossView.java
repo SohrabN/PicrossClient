@@ -7,8 +7,6 @@
  */
 package piccross;
 
-import jdk.nashorn.internal.scripts.JO;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -21,7 +19,7 @@ import javax.swing.border.LineBorder;
  *
  * @author Sohrab.N
  */
-public class PicrossView extends JFrame {
+public class PiccrossView extends JFrame {
     static String gameBoolVec;
     BufferedReader input;
     static PrintStream out;
@@ -61,12 +59,12 @@ public class PicrossView extends JFrame {
     /**
      * represents our JFrame which will be the only frame we will use in this game.
      */
-    private static PicrossView mainFrame;
+    private static PiccrossView mainFrame;
 
     /**
      * panels we are using in our frame
      */
-    private final PicrossModel picrossModel;
+    private final PiccrossModel piccrossModel;
 
     /**
      * westPanel represent the panel on left side of frame.
@@ -167,62 +165,48 @@ public class PicrossView extends JFrame {
     private JMenuItem menuItem;
     private JMenuItem menuItemConnect;
     private JMenuItem menuItemDisconnect;
+    private static ControllableTimer timer;
 
     /**
      * Picross class object constructor.
      */
-    public PicrossView() {
+    public PiccrossView() {
         // setting name of frame
         super("Picross 3.0");
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
-        picrossModel = new PicrossModel();
+        piccrossModel = new PiccrossModel();
         // Exiting the program if mainFrame is close
         //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         timerLabel = new JLabel("");
         connect = new PiccrossNetworkModalVC(this);
         consoleOutputTextArea = new JTextArea(24, 30);
         scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (connected) {
-                    consoleInput.setText("/bye");
-                    consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
-                    try {
-                        socket.close();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    connected = false;
-                    menuItemConnect.setEnabled(true);
-                    menuItemDisconnect.setEnabled(false);
-                }
-                System.exit(0);
-            }
-        });
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     }
 
-    public PicrossView(Socket socket,JTextArea consoleOutputTextArea) {
+    public PiccrossView(Socket socket, JTextArea consoleOutputTextArea, boolean connected) {
         // setting name of frame
         super("Picross 3.0");
-        PicrossView.consoleOutputTextArea.setText(consoleOutputTextArea.getText());
-        PicrossView.socket=socket;
+        this.connected=connected;
+        PiccrossView.consoleOutputTextArea.setText(consoleOutputTextArea.getText());
+        PiccrossView.socket=socket;
         connected=true;
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
-        picrossModel = new PicrossModel();
+        piccrossModel = new PiccrossModel();
         // Exiting the program if mainFrame is close
         //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         timerLabel = new JLabel("");
         connect = new PiccrossNetworkModalVC(this);
-        consoleOutputTextArea = new JTextArea(24, 30);
+//        consoleOutputTextArea = new JTextArea(24, 30);
         scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (connected) {
+        if (this.connected) {
+            addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+
                     consoleInput.setText("/bye");
                     consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
                     try {
@@ -230,13 +214,16 @@ public class PicrossView extends JFrame {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    connected = false;
+                    mainFrame.connected = false;
                     menuItemConnect.setEnabled(true);
                     menuItemDisconnect.setEnabled(false);
+
+                    System.exit(0);
                 }
-                System.exit(0);
-            }
-        });
+            });
+        }else {
+            this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        }
 
     }
 
@@ -264,7 +251,7 @@ public class PicrossView extends JFrame {
         ImageIcon img = new ImageIcon(iconURL);
         mainFrame.setIconImage(img.getImage());
 
-        picrossModel.setShowSolution(false);
+        piccrossModel.setShowSolution(false);
 
         gameIsDone = false;
         // sets up the menu bar
@@ -274,8 +261,8 @@ public class PicrossView extends JFrame {
             menuItemConnect.setEnabled(false);
         }
         // sets up the 5x5 grid
-        picrossModel.setup(debugMode);
-        JPanel gameGrid = picrossModel.getGridPanel();
+        piccrossModel.setup(debugMode);
+        JPanel gameGrid = piccrossModel.getGridPanel();
         gameGrid.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, new Color(255, 204, 102)));
         // adding gridPanel to the mainFrame
         mainFrame.getContentPane().add(gameGrid, BorderLayout.CENTER);
@@ -321,7 +308,7 @@ public class PicrossView extends JFrame {
         consolePanel.add(scrollerScrollPane, BorderLayout.SOUTH);
 
         // console text area setup
-        consoleOutputTextArea.setPreferredSize(new Dimension(500, 400));
+        consoleOutputTextArea.setPreferredSize(new Dimension(500, 4000));
         consoleOutputTextArea.setEditable(false);
 
         consoleInput.addKeyListener(new textAreaListener());
@@ -329,16 +316,17 @@ public class PicrossView extends JFrame {
         timerPanel.setPreferredSize(new Dimension(250, 50));
 
         timerLabel.setFont(new Font("TimesNewRoman", Font.BOLD, 14));
+        timerLabel.setText( "00" + ":" + "00" + ":" + "00");
         timerPanel.add(timerLabel);
 
         // point panel setup
         pointLabel.setText("Points : ");
         pointPanel.add(pointLabel, new BorderLayout(5, 5));
         // picrossModel.getPointTextField().setText(" ");
-        picrossModel.getPointTextField().setEditable(false);
-        picrossModel.getPointTextField().setBackground(Color.WHITE);
-        picrossModel.getPointTextField().setText("   " + 0 + "/" + gridSize * gridSize + "  ");
-        pointPanel.add(picrossModel.getPointTextField(), new BorderLayout(5, 5));
+        piccrossModel.getPointTextField().setEditable(false);
+        piccrossModel.getPointTextField().setBackground(Color.WHITE);
+        piccrossModel.getPointTextField().setText("   " + 0 + "/" + gridSize * gridSize + "  ");
+        pointPanel.add(piccrossModel.getPointTextField(), new BorderLayout(5, 5));
 
         // mark panel setup
         markAndLogoPanel.setPreferredSize(new Dimension(250, 75));
@@ -364,37 +352,42 @@ public class PicrossView extends JFrame {
 
         // registering the Reset Button
         resetButton.addActionListener(new reset());
+        timer = new ControllableTimer(mainFrame);
+        timer.start();
 
         // starting time // was not able to make it work with your timer code. need help
         // regarding to that during the lab.
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    updateTime();
-                } catch (Exception ie) {
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            public void run() {
+//                try {
+//                    updateTime();
+//                } catch (Exception ie) {
+//                }
+//            }
+//        }).start();
 
         return 0;
+    }
+    public static ControllableTimer getTimer(){
+        return timer;
     }
 
     /**
      * This method will update the time in every 1 second interval.
      */
-    public void updateTime() {
-        try {
-            while (!gameIsDone) {
-                // geting Time in desire format
-                timerLabel.setText(getTimeElapsed());
-                Thread.currentThread();
-                // thread sleeping for 1 sec
-                Thread.sleep(1000);
-            }
-        } catch (Exception e) {
-            System.out.println("Exception in Thread Sleep : " + e);
-        }
-    }
+//    public void updateTime() {
+//        try {
+//            while (!gameIsDone) {
+//                // geting Time in desire format
+//                timerLabel.setText(getTimeElapsed());
+//                Thread.currentThread();
+//                // thread sleeping for 1 sec
+//                Thread.sleep(1000);
+//            }
+//        } catch (Exception e) {
+//            System.out.println("Exception in Thread Sleep : " + e);
+//        }
+//    }
 
     /**
      * This method will calculate the time that our game has been running and
@@ -403,11 +396,28 @@ public class PicrossView extends JFrame {
      * @return String is returned to the calling which will be the time since game
      * has been started.
      */
-    public static String getTimeElapsed() {
+//    public static String getTimeElapsed() {
+//        // getting time since the game has been started
+//        long elapsedTime = System.currentTimeMillis() - startTimer;
+//        // converting millisecond to second
+//        elapsedTime = elapsedTime / 1000;
+//
+//        String seconds = Integer.toString((int) (elapsedTime % 60));
+//        String minutes = Integer.toString((int) ((elapsedTime % 3600) / 60));
+//        String hours = Integer.toString((int) (elapsedTime / 3600));
+//
+//        if (seconds.length() < 2) seconds = "0" + seconds;
+//
+//        if (minutes.length() < 2) minutes = "0" + minutes;
+//
+//        if (hours.length() < 2) hours = "0" + hours;
+//        // returning the timer in correct format
+//        return hours + ":" + minutes + ":" + seconds;
+//    }
+    public static String getTimeElapsed(int elapsed) {
         // getting time since the game has been started
-        long elapsedTime = System.currentTimeMillis() - startTimer;
-        // converting millisecond to second
-        elapsedTime = elapsedTime / 1000;
+        long elapsedTime = elapsed;
+
 
         String seconds = Integer.toString((int) (elapsedTime % 60));
         String minutes = Integer.toString((int) ((elapsedTime % 3600) / 60));
@@ -419,6 +429,7 @@ public class PicrossView extends JFrame {
 
         if (hours.length() < 2) hours = "0" + hours;
         // returning the timer in correct format
+        mainFrame.timerLabel.setText(hours + ":" + minutes + ":" + seconds);
         return hours + ":" + minutes + ":" + seconds;
     }
 
@@ -441,11 +452,11 @@ public class PicrossView extends JFrame {
         public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 System.out.println("Mark Selected");
-                picrossModel.setMark(true);
+                piccrossModel.setMark(true);
 
             } else {
                 System.out.println("Mark NOT Selected");
-                picrossModel.setMark(false);
+                piccrossModel.setMark(false);
             }
         }
 
@@ -462,17 +473,17 @@ public class PicrossView extends JFrame {
         public void actionPerformed(ActionEvent e) {
             System.out.println("Reset Selected");
             startTimer = System.currentTimeMillis();
-            if (gameIsDone) {
-                new Thread(new Runnable() {
-                    public void run() {
-                        try {
-                            updateTime();
-                        } catch (Exception ie) {
-                        }
-                    }
-                }).start();
-            }
-            picrossModel.resetGame();
+//            if (gameIsDone) {
+//                new Thread(new Runnable() {
+//                    public void run() {
+//                        try {
+//                            updateTime();
+//                        } catch (Exception ie) {
+//                        }
+//                    }
+//                }).start();
+//            }
+            piccrossModel.resetGame();
             gameIsDone = false;
         }
     }
@@ -500,7 +511,7 @@ public class PicrossView extends JFrame {
     private class showSolution implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            picrossModel.showSolution();
+            piccrossModel.showSolution();
 
         }
     }
@@ -513,22 +524,11 @@ public class PicrossView extends JFrame {
     private class newGame implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-//            if (connected) {
-//                consoleInput.setText("/bye");
-//                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
-//                try {
-//                    socket.close();
-//                } catch (IOException ex) {
-//                    ex.printStackTrace();
-//                }
-//                connected = false;
-//                menuItemConnect.setEnabled(true);
-//                menuItemDisconnect.setEnabled(false);
-//            }
             debugMode = 0;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView(socket,consoleOutputTextArea);
+            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            timer.stop();
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(5);
 
@@ -542,8 +542,10 @@ public class PicrossView extends JFrame {
             gridSize = 5;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
-            mainFrame.startGUI(5);
+            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            timer.stop();
+            SwingUtilities.updateComponentTreeUI(mainFrame);
+            mainFrame.startGUI(gridSize);
         }
     }
 
@@ -554,8 +556,10 @@ public class PicrossView extends JFrame {
             gridSize = 10;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
-            mainFrame.startGUI(10);
+            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            timer.stop();
+            SwingUtilities.updateComponentTreeUI(mainFrame);
+            mainFrame.startGUI(gridSize);
         }
     }
 
@@ -566,8 +570,10 @@ public class PicrossView extends JFrame {
             gridSize = 15;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
-            mainFrame.startGUI(15);
+            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            timer.stop();
+            SwingUtilities.updateComponentTreeUI(mainFrame);
+            mainFrame.startGUI(gridSize);
         }
     }
 
@@ -609,7 +615,7 @@ public class PicrossView extends JFrame {
             debugMode = 1;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
+            mainFrame = new PiccrossView();
             mainFrame.startGUI(5);
         }
     }
@@ -627,7 +633,7 @@ public class PicrossView extends JFrame {
             debugMode = 2;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
+            mainFrame = new PiccrossView();
             mainFrame.startGUI(5);
         }
     }
@@ -645,7 +651,7 @@ public class PicrossView extends JFrame {
             debugMode = 3;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PicrossView();
+            mainFrame = new PiccrossView();
             mainFrame.startGUI(5);
         }
     }
@@ -960,7 +966,7 @@ public class PicrossView extends JFrame {
         }
         if (message.equals("/upload")) {
             try {
-                picrossModel.sendGameToServer();
+                piccrossModel.sendGameToServer();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -981,7 +987,7 @@ public class PicrossView extends JFrame {
      * @param gameIsDone represents if game has been finished or not.
      */
     public static void setGameIsDone(boolean gameIsDone) {
-        PicrossView.gameIsDone = gameIsDone;
+        PiccrossView.gameIsDone = gameIsDone;
     }
 
     class PicrossNetworkController extends Thread {
@@ -1002,7 +1008,7 @@ public class PicrossView extends JFrame {
                                 debugMode = 4;
                                 gameIsDone = true;
                                 mainFrame.dispose();
-                                mainFrame = new PicrossView();
+                                mainFrame = new PiccrossView();
                                 mainFrame.startGUI(5);
                             } else {
                                 consoleOutputTextArea.append(message + "\n");

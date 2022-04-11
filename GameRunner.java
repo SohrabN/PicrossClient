@@ -16,7 +16,7 @@ import javax.swing.SwingUtilities;
  * @author Sohrab.N
  */
 public class GameRunner {
-    PicrossView frame;
+    PiccrossView frame;
     /**
      * Our main method inside our main class. This is the starting point of the
      * program.
@@ -29,7 +29,7 @@ public class GameRunner {
         // PicrossView frame = model.getMainFrame();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                PicrossView frame = new PicrossView();
+                PiccrossView frame = new PiccrossView();
 
                 if (frame.startGUI(5) == -1)
                     System.err.println(
