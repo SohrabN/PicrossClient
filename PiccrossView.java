@@ -192,7 +192,6 @@ public class PiccrossView extends JFrame {
         this.connected=connected;
         PiccrossView.consoleOutputTextArea.setText(consoleOutputTextArea.getText());
         PiccrossView.socket=socket;
-        connected=true;
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         piccrossModel = new PiccrossModel();
@@ -695,6 +694,26 @@ public class PiccrossView extends JFrame {
                             menuItemConnect.setEnabled(false);
                             menuItemDisconnect.setEnabled(true);
                             thread = new PicrossNetworkController();
+                            addWindowListener(new WindowAdapter() {
+                                @Override
+                                public void windowClosing(WindowEvent e) {
+
+                                    consoleInput.setText("/bye");
+                                    consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
+                                    try {
+                                        socket.close();
+                                    } catch (IOException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                    mainFrame.connected = false;
+                                    menuItemConnect.setEnabled(true);
+                                    menuItemDisconnect.setEnabled(false);
+
+                                    System.exit(0);
+                                }
+                            });
+
+
                             thread.start();
 
                         } catch (IOException ex) {
@@ -728,6 +747,12 @@ public class PiccrossView extends JFrame {
                 connected = false;
                 menuItemConnect.setEnabled(true);
                 menuItemDisconnect.setEnabled(false);
+                addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        System.exit(0);
+                    }
+                });
 
             } catch (IOException ex) {
                 ex.printStackTrace();
