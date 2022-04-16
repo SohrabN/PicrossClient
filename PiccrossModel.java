@@ -33,11 +33,6 @@ public class PiccrossModel {
     private boolean showSolution;
 
     /**
-     * Flag that used for our hover option.
-     */
-    // private boolean enteredFlag;
-
-    /**
      * Represents the true grid which will be true or false depending on random
      * generation of the game.
      */
@@ -47,11 +42,6 @@ public class PiccrossModel {
      * Represents the boxes that are selected by the user.
      */
     private static boolean[][] gridBoolSelected;
-
-    /**
-     * Represents the girdSize which will get from view.
-     */
-    //private static int gridSize = PicrossView.getGridSize();
 
     /**
      * Represents the points of the user.
@@ -112,14 +102,14 @@ public class PiccrossModel {
     }
 
     /**
-     * This method will setup the gridPanel which will hold the hints and grid
+     * This method will set up the gridPanel which will hold the hints and grid
      * boxes.
      *
      * @param debugMode used to indicate either to generate random games or
-     *                  predefinded games.
+     *                  predefined games.
      */
     public void setup(int debugMode) {
-        count=0;
+        count = 0;
         intArr = new int[PiccrossView.getGridSize()];
         gridButtons = new JButton[PiccrossView.getGridSize() + 1][PiccrossView.getGridSize() + 1];
         boolean debug = PiccrossView.getDebug();
@@ -136,7 +126,7 @@ public class PiccrossModel {
         gridPanel.setBackground(Color.WHITE);
         // creates border between buttons
         gridPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        // for loop to setup and add it to gridPanel.
+        // for loop to set up and add it to gridPanel.
         for (int i = 1; i < PiccrossView.getGridSize() + 1; i++) {
             for (int j = 1; j < PiccrossView.getGridSize() + 1; j++) {
 
@@ -146,8 +136,6 @@ public class PiccrossModel {
         }
         setupHints();
         addHints();
-
-        //System.out.println("trueButtons : " + trueButtons);
     }
 
     /**
@@ -161,7 +149,6 @@ public class PiccrossModel {
      */
     private boolean setup(int i, int j, int debugMode) {
         boolean bool = false;
-
         if (j != 0 || i != 0) {
             // creating new JButton object for index passed to this function
             gridButtons[i][j] = new JButton();
@@ -173,7 +160,6 @@ public class PiccrossModel {
             gridButtons[i][j].setSize(50, 50);
 
             // adding MouseEvent listener to each button
-
             switch (debugMode) {
                 case 0:
                     bool = new Random().nextBoolean();
@@ -196,10 +182,10 @@ public class PiccrossModel {
                     break;
                 case 3:// debug sub menu predefined game 3
                     break;
-                case 4:
+                case 4:// parses the game received from server and sets the buttons according to that
                     String game = PiccrossView.getGameBoolVec();
-                    String [] messageArr=game.split(",");
-                    if (count<messageArr.length) {
+                    String[] messageArr = game.split(",");
+                    if (count < messageArr.length) {
                         if (messageArr[count].equals("1")) {
                             bool = true;
                             count++;
@@ -207,14 +193,15 @@ public class PiccrossModel {
                             count++;
                         }
                     }
-
                     break;
             }
-
             gridButtons[i][j].addMouseListener(new MouseAdapter() {
+                /**
+                 * ActionListener when a program detects a mouse click.
+                 * @param e MouseEvent object.
+                 */
                 public void mousePressed(MouseEvent e) {
-                    if (!PiccrossView.getGameIsDone()) {
-                        //enteredFlag = false;
+                    if (!PiccrossView.isGameIsDone()) {
                         if (gridBool[i][j] && !gridBoolSelected[i][j]) {
                             if (!mark) {
                                 trueSelected++;
@@ -237,11 +224,7 @@ public class PiccrossModel {
                                                 buttons,
                                                 buttons[1]);
                                         if (dialogResult == JOptionPane.YES_OPTION) {
-                                            try {
-                                                sendGameToServer();
-                                            } catch (IOException ex) {
-                                                ex.printStackTrace();
-                                            }
+                                            sendGameToServer();
                                         }
                                     } else {
                                         ImageIcon imageEnd = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicend.png")));
@@ -251,15 +234,9 @@ public class PiccrossModel {
                                                 buttons,
                                                 buttons[1]);
                                         if (dialogResult == JOptionPane.YES_OPTION) {
-                                            try {
-                                                sendGameToServer();
-                                            } catch (IOException ex) {
-                                                ex.printStackTrace();
-                                            }
+                                            sendGameToServer();
                                         }
                                     }
-
-
                                 }
                             } else {
                                 gridButtons[i][j].setBackground(new Color(148, 216, 243));
@@ -269,8 +246,8 @@ public class PiccrossModel {
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }
-                                gridButtons[i][j].setIcon(new ImageIcon(img));
-                                if(points>0)
+                                gridButtons[i][j].setIcon(new ImageIcon(Objects.requireNonNull(img)));
+                                if (points > 0)
                                     points--;
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             }
@@ -283,8 +260,8 @@ public class PiccrossModel {
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }
-                                gridButtons[i][j].setIcon(new ImageIcon(img));
-                                if(points>0)
+                                gridButtons[i][j].setIcon(new ImageIcon(Objects.requireNonNull(img)));
+                                if (points > 0)
                                     points--;
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             } else {
@@ -312,16 +289,24 @@ public class PiccrossModel {
                     }
                 }
 
+                /**
+                 * ActionListener when mouse enters a button. Used for hover feature.
+                 * @param e MouseEvent object.
+                 */
                 public void mouseEntered(MouseEvent e) {
-                    if (PiccrossView.getHover() && !PiccrossView.getGameIsDone()) {
+                    if (PiccrossView.getHover() && !PiccrossView.isGameIsDone()) {
                         if (!gridBoolSelected[i][j]) {
                             gridButtons[i][j].setBackground(new Color(232, 203, 93));
                         }
                     }
                 }
 
+                /**
+                 * ActionListener when mouse exits a button. Used for hover feature.
+                 * @param e MouseEvent object.
+                 */
                 public void mouseExited(MouseEvent e) {
-                    if (PiccrossView.getHover() && !PiccrossView.getGameIsDone()) {
+                    if (PiccrossView.getHover() && !PiccrossView.isGameIsDone()) {
                         if (!showSolution) {
                             if (gridBoolSelected[i][j]) {
                                 if (gridBool[i][j]) {
@@ -360,15 +345,23 @@ public class PiccrossModel {
         return bool;
     }
 
-    public void sendGameToServer() throws IOException {
+    /**
+     * Method will send the current game in Piccross to server.
+     */
+    public void sendGameToServer() {
         Socket socket = PiccrossView.getSocket();
-        if(socket==null){
+        if (socket == null) {
             PiccrossView.getConsoleOutputTextArea().append("ALERT: You must be connected to Picross Server in order to upload score.");
-        }else {
-            PrintStream out = new PrintStream(socket.getOutputStream(), true);
+        } else {
+            PrintStream out = null;
+            try {
+                out = new PrintStream(socket.getOutputStream(), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             StringBuilder gameStream = new StringBuilder("[");
-            for (int i = 1; i < PiccrossView.getGridSize()+1; i++) {
-                for (int j = 1; j < PiccrossView.getGridSize()+1; j++) {
+            for (int i = 1; i < PiccrossView.getGridSize() + 1; i++) {
+                for (int j = 1; j < PiccrossView.getGridSize() + 1; j++) {
                     if (gridBool[i][j]) {
                         gameStream.append("1,");
                     } else {
@@ -378,10 +371,13 @@ public class PiccrossModel {
             }
             gameStream.append("]");
             gameStream.append("Points:").append(points).append(",Time:").append(PiccrossView.getTimeElapsed(PiccrossView.getTimer().getTime()));
-            out.println(gameStream);
+            Objects.requireNonNull(out).println(gameStream);
         }
     }
 
+    /**
+     * Method will set up and add hint to our gridPanel layout.
+     */
     public void addHints() {
         for (int i = 0; i < PiccrossView.getGridSize() + 1; i++) {
             for (int j = 0; j < PiccrossView.getGridSize() + 1; j++) {
@@ -494,8 +490,7 @@ public class PiccrossModel {
      * which means solution will go away.
      */
     public void showSolution() {
-        if (showSolution) showSolution = false;
-        else showSolution = true;
+        showSolution = !showSolution;
         for (int i = 1; i < PiccrossView.getGridSize() + 1; i++) {
             for (int j = 1; j < PiccrossView.getGridSize() + 1; j++) {
                 // setups each button and adds MouseEvent listener to it.
@@ -507,7 +502,6 @@ public class PiccrossModel {
                     if (gridBool[i][j]) {
                         if (gridBoolSelected[i][j]) gridButtons[i][j].setBackground(new Color(148, 216, 243));
                         else gridButtons[i][j].setBackground(Color.WHITE);
-
                     }
                 }
             }
@@ -515,14 +509,22 @@ public class PiccrossModel {
     }
 
     /**
-     * This method is a getter for or gridPanel which will be used in view.
+     * This method is a getter for gridPanel which will be used in view.
      *
-     * @return
+     * @return Returns gridPanel to other classes.
      */
     public JPanel getGridPanel() {
         return gridPanel;
     }
-    public boolean isShowSolution() {return showSolution;}
+
+    /**
+     * This method is a getter for showSolution.
+     *
+     * @return Returns boolean value of showSolution.
+     */
+    public boolean isShowSolution() {
+        return showSolution;
+    }
 
     /**
      * This class is used to create numPanel object which is a JPanel with a int
@@ -605,7 +607,7 @@ public class PiccrossModel {
         }
         points = 0;
         gridSelected = 0;
-        trueSelected=0;
+        trueSelected = 0;
         pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
     }
 

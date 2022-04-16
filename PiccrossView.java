@@ -189,9 +189,9 @@ public class PiccrossView extends JFrame {
     public PiccrossView(Socket socket, JTextArea consoleOutputTextArea, boolean connected) {
         // setting name of frame
         super("Picross 3.0");
-        this.connected=connected;
+        this.connected = connected;
         PiccrossView.consoleOutputTextArea.setText(consoleOutputTextArea.getText());
-        PiccrossView.socket=socket;
+        PiccrossView.socket = socket;
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         piccrossModel = new PiccrossModel();
@@ -220,12 +220,11 @@ public class PiccrossView extends JFrame {
                     System.exit(0);
                 }
             });
-        }else {
+        } else {
             this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         }
 
     }
-
 
 
     /**
@@ -255,7 +254,7 @@ public class PiccrossView extends JFrame {
         gameIsDone = false;
         // sets up the menu bar
         mainFrame.buildMenu();
-        if (connected){
+        if (connected) {
             menuItemDisconnect.setEnabled(true);
             menuItemConnect.setEnabled(false);
         }
@@ -315,7 +314,7 @@ public class PiccrossView extends JFrame {
         timerPanel.setPreferredSize(new Dimension(250, 50));
 
         timerLabel.setFont(new Font("TimesNewRoman", Font.BOLD, 14));
-        timerLabel.setText( "00" + ":" + "00" + ":" + "00");
+        timerLabel.setText("00" + ":" + "00" + ":" + "00");
         timerPanel.add(timerLabel);
 
         // point panel setup
@@ -367,10 +366,12 @@ public class PiccrossView extends JFrame {
 
         return 0;
     }
-    public static ControllableTimer getTimer(){
+
+    public static ControllableTimer getTimer() {
         return timer;
     }
-    public JLabel getTimerLabel(){
+
+    public JLabel getTimerLabel() {
         return timerLabel;
     }
     /**
@@ -475,7 +476,7 @@ public class PiccrossView extends JFrame {
             startTimer = System.currentTimeMillis();
             timer.setStatus(ControllableTimer.RESET);
             timer.setStatus(ControllableTimer.START);
-            if(piccrossModel.isShowSolution())
+            if (piccrossModel.isShowSolution())
                 piccrossModel.showSolution();
             timerLabel.setText("00:00:00");
             piccrossModel.resetGame();
@@ -522,7 +523,7 @@ public class PiccrossView extends JFrame {
             debugMode = 0;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            mainFrame = new PiccrossView(socket, consoleOutputTextArea, connected);
             timer.setStatus(ControllableTimer.RESET);
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(5);
@@ -537,7 +538,7 @@ public class PiccrossView extends JFrame {
             gridSize = 5;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            mainFrame = new PiccrossView(socket, consoleOutputTextArea, connected);
             timer.stop();
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(gridSize);
@@ -551,7 +552,7 @@ public class PiccrossView extends JFrame {
             gridSize = 10;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            mainFrame = new PiccrossView(socket, consoleOutputTextArea, connected);
             timer.stop();
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(gridSize);
@@ -565,7 +566,7 @@ public class PiccrossView extends JFrame {
             gridSize = 15;
             gameIsDone = true;
             mainFrame.dispose();
-            mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
+            mainFrame = new PiccrossView(socket, consoleOutputTextArea, connected);
             timer.stop();
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(gridSize);
@@ -950,7 +951,7 @@ public class PiccrossView extends JFrame {
      *
      * @return gameIsDone represents if game has been finished or not.
      */
-    public static boolean getGameIsDone() {
+    public static boolean isGameIsDone() {
         return gameIsDone;
     }
 
@@ -967,18 +968,14 @@ public class PiccrossView extends JFrame {
         if (message.contains("/bye")) {
             consoleOutputTextArea.append("Disconnected from server.\n");
             connected = false;
-            if (connected) {
-                consoleInput.setText("/bye");
-                consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
-                try {
-                    socket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-                connected = false;
-                menuItemConnect.setEnabled(true);
-                menuItemDisconnect.setEnabled(false);
+            try {
+                socket.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
+            connected = false;
+            menuItemConnect.setEnabled(true);
+            menuItemDisconnect.setEnabled(false);
             return 0;
         }
         if (message.equals("/cls")) {
@@ -986,11 +983,7 @@ public class PiccrossView extends JFrame {
             return 1;
         }
         if (message.equals("/upload")) {
-            try {
-                piccrossModel.sendGameToServer();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            piccrossModel.sendGameToServer();
             return 1;
         }
         if (message.startsWith("[1") || message.startsWith("[0")) {
@@ -1015,7 +1008,7 @@ public class PiccrossView extends JFrame {
         public void run() {
             String message;
             /*while thread is not Interrupted try to parse message*/
-            while (!Thread.currentThread().isInterrupted()&&socket.isConnected()) {
+            while (!Thread.currentThread().isInterrupted() && socket.isConnected()) {
                 try {
                     message = input.readLine();
                     /*if recived message not null check if user can be found and print message*/
@@ -1028,8 +1021,11 @@ public class PiccrossView extends JFrame {
                                 gameBoolVec = message;
                                 debugMode = 4;
                                 gameIsDone = true;
+                                timer.setStatus(ControllableTimer.TERMINATE);
+                                timer.stop();
+                                timerLabel.setText("00:00:00");
                                 mainFrame.dispose();
-                                mainFrame = new PiccrossView();
+                                mainFrame = new PiccrossView(socket, consoleOutputTextArea, connected);
                                 mainFrame.startGUI(5);
                             } else {
                                 consoleOutputTextArea.append(message + "\n");
