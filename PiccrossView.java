@@ -137,7 +137,7 @@ public class PiccrossView extends JFrame {
      * timerLabel will display the current time of playing game.timerLabel is a
      * component of timerPanel.
      */
-    private JLabel timerLabel;
+    private static JLabel timerLabel;
 
     /**
      * used to track the start time of time.
@@ -370,7 +370,9 @@ public class PiccrossView extends JFrame {
     public static ControllableTimer getTimer(){
         return timer;
     }
-
+    public JLabel getTimerLabel(){
+        return timerLabel;
+    }
     /**
      * This method will update the time in every 1 second interval.
      */
@@ -470,18 +472,12 @@ public class PiccrossView extends JFrame {
     private class reset implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Reset Selected");
             startTimer = System.currentTimeMillis();
-//            if (gameIsDone) {
-//                new Thread(new Runnable() {
-//                    public void run() {
-//                        try {
-//                            updateTime();
-//                        } catch (Exception ie) {
-//                        }
-//                    }
-//                }).start();
-//            }
+            timer.setStatus(ControllableTimer.RESET);
+            timer.setStatus(ControllableTimer.START);
+            if(piccrossModel.isShowSolution())
+                piccrossModel.showSolution();
+            timerLabel.setText("00:00:00");
             piccrossModel.resetGame();
             gameIsDone = false;
         }
@@ -527,7 +523,7 @@ public class PiccrossView extends JFrame {
             gameIsDone = true;
             mainFrame.dispose();
             mainFrame = new PiccrossView(socket,consoleOutputTextArea,connected);
-            timer.stop();
+            timer.setStatus(ControllableTimer.RESET);
             SwingUtilities.updateComponentTreeUI(mainFrame);
             mainFrame.startGUI(5);
 
@@ -684,7 +680,7 @@ public class PiccrossView extends JFrame {
                         socket.connect(new InetSocketAddress(InetAddress.getByName(host), port), 10000);
                         try {
                             consoleOutputTextArea.append("Connection Successful\n");
-                            consoleOutputTextArea.append("Welcome to Sohrab's Picross Server.\n");
+                            consoleOutputTextArea.append("\n###################################\nWelcome to Sohrab's Picross Server.\n###################################\n");
                             consoleOutputTextArea.append("User '/help' for commands.\n");
                             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                             out = new PrintStream(socket.getOutputStream(), true);
@@ -906,7 +902,7 @@ public class PiccrossView extends JFrame {
         picLogo = new ImageIcon(this.getClass().getResource("AboutIcon.png"));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new showAbout());
-        ctrlVKeyStroke = KeyStroke.getKeyStroke("alt S");
+        ctrlVKeyStroke = KeyStroke.getKeyStroke("alt A");
         menuItem.setAccelerator(ctrlVKeyStroke);
         menu.add(menuItem);
         menuBar.add(menu);
@@ -1019,7 +1015,7 @@ public class PiccrossView extends JFrame {
         public void run() {
             String message;
             /*while thread is not Interrupted try to parse message*/
-            while (!Thread.currentThread().isInterrupted()) {
+            while (!Thread.currentThread().isInterrupted()&&socket.isConnected()) {
                 try {
                     message = input.readLine();
                     /*if recived message not null check if user can be found and print message*/
@@ -1044,7 +1040,8 @@ public class PiccrossView extends JFrame {
                         }
                     }
                 } catch (SocketException ex) {
-
+                    consoleOutputTextArea.append("Connection was terminated from server side.\n");
+                    break;
                 } catch (IOException ex) {
                     ex.printStackTrace();
                     consoleOutputTextArea.append("message failed to be parsed");

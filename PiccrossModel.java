@@ -30,7 +30,7 @@ public class PiccrossModel {
     /**
      * Represents if we want to show solution or not to user.
      */
-    private static boolean showSolution;
+    private boolean showSolution;
 
     /**
      * Flag that used for our hover option.
@@ -227,14 +227,15 @@ public class PiccrossModel {
                                     Object[] buttons = {"Yes", "No"};
                                     PiccrossView.setGameIsDone(true);
                                     gameDone();
+                                    PiccrossView.getTimer().setStatus(ControllableTimer.STOP);
                                     if (points == trueButtons) {
                                         points = PiccrossView.getGridSize() * PiccrossView.getGridSize();
                                         pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                                         ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicwinner.png")));
                                         JLabel picWinner = new JLabel(imageWinner);
                                         int dialogResult = JOptionPane.showOptionDialog(null, picWinner, "Congrats!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
-                                                buttons,//the titles of buttons
-                                                buttons[1]);//default button title
+                                                buttons,
+                                                buttons[1]);
                                         if (dialogResult == JOptionPane.YES_OPTION) {
                                             try {
                                                 sendGameToServer();
@@ -247,8 +248,8 @@ public class PiccrossModel {
                                         JLabel picEnd = new JLabel(imageEnd);
 
                                         int dialogResult = JOptionPane.showOptionDialog(null, picEnd, "Game Over!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
-                                                buttons,//the titles of buttons
-                                                buttons[1]);//default button title
+                                                buttons,
+                                                buttons[1]);
                                         if (dialogResult == JOptionPane.YES_OPTION) {
                                             try {
                                                 sendGameToServer();
@@ -269,7 +270,8 @@ public class PiccrossModel {
                                     ex.printStackTrace();
                                 }
                                 gridButtons[i][j].setIcon(new ImageIcon(img));
-                                points--;
+                                if(points>0)
+                                    points--;
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             }
                         } else if (!gridBool[i][j] && !gridBoolSelected[i][j]) {
@@ -282,7 +284,8 @@ public class PiccrossModel {
                                     ex.printStackTrace();
                                 }
                                 gridButtons[i][j].setIcon(new ImageIcon(img));
-                                points--;
+                                if(points>0)
+                                    points--;
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             } else {
                                 gridButtons[i][j].setBackground(new Color(220, 220, 220));
@@ -292,10 +295,11 @@ public class PiccrossModel {
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             }
                         }
-                        if (!gridBoolSelected[i][j]) gridSelected++;
+                        if (gridBoolSelected[i][j]) gridSelected++;
                         if (gridSelected == PiccrossView.getGridSize() * PiccrossView.getGridSize()) {
                             PiccrossView.setGameIsDone(true);
                             gameDone();
+                            PiccrossView.getTimer().setStatus(ControllableTimer.STOP);
                             Object[] buttons = {"Yes", "No"};
                             ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicwinner.png")));
                             JLabel picWinner = new JLabel(imageWinner);
@@ -518,6 +522,7 @@ public class PiccrossModel {
     public JPanel getGridPanel() {
         return gridPanel;
     }
+    public boolean isShowSolution() {return showSolution;}
 
     /**
      * This class is used to create numPanel object which is a JPanel with a int
@@ -590,15 +595,17 @@ public class PiccrossModel {
      */
     public void resetGame() {
 
-        gridSelected = 0;
         for (int i = 1; i < PiccrossView.getGridSize() + 1; i++) {
             for (int j = 1; j < PiccrossView.getGridSize() + 1; j++) {
                 gridBoolSelected[i][j] = false;
                 gridButtons[i][j].setBackground(Color.WHITE);
                 gridButtons[i][j].setIcon(null);
+
             }
         }
         points = 0;
+        gridSelected = 0;
+        trueSelected=0;
         pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
     }
 
@@ -609,7 +616,7 @@ public class PiccrossModel {
      *                     the correct boxes if false will not.
      */
     public void setShowSolution(boolean showSolution) {
-        PiccrossModel.showSolution = showSolution;
+        this.showSolution = showSolution;
     }
 
     /**
