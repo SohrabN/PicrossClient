@@ -4,6 +4,4 @@ Extra added:
 3. /score command will display the current score table.
 4. /upload command will upload the game grid to server. Also clicking on Yes when game is won will upload the game similar to sample output.
 
-BUG:
-TIMER WONT RESTART AFTER /GET.
 

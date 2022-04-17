@@ -20,6 +20,9 @@ import java.util.Random;
  * @author Sohrab.N
  */
 public class PiccrossModel {
+    /**
+     * Represents number of buttons received from a game send by server.
+     */
     int count;
 
     /**
@@ -221,8 +224,7 @@ public class PiccrossModel {
                                         ImageIcon imageWinner = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("gamepicwinner.png")));
                                         JLabel picWinner = new JLabel(imageWinner);
                                         int dialogResult = JOptionPane.showOptionDialog(null, picWinner, "Congrats!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
-                                                buttons,
-                                                buttons[1]);
+                                                buttons, buttons[1]);
                                         if (dialogResult == JOptionPane.YES_OPTION) {
                                             sendGameToServer();
                                         }
@@ -231,8 +233,7 @@ public class PiccrossModel {
                                         JLabel picEnd = new JLabel(imageEnd);
 
                                         int dialogResult = JOptionPane.showOptionDialog(null, picEnd, "Game Over!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null,//do not use a custom Icon
-                                                buttons,
-                                                buttons[1]);
+                                                buttons, buttons[1]);
                                         if (dialogResult == JOptionPane.YES_OPTION) {
                                             sendGameToServer();
                                         }
@@ -247,8 +248,7 @@ public class PiccrossModel {
                                     ex.printStackTrace();
                                 }
                                 gridButtons[i][j].setIcon(new ImageIcon(Objects.requireNonNull(img)));
-                                if (points > 0)
-                                    points--;
+                                if (points > 0) points--;
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             }
                         } else if (!gridBool[i][j] && !gridBoolSelected[i][j]) {
@@ -261,8 +261,7 @@ public class PiccrossModel {
                                     ex.printStackTrace();
                                 }
                                 gridButtons[i][j].setIcon(new ImageIcon(Objects.requireNonNull(img)));
-                                if (points > 0)
-                                    points--;
+                                if (points > 0) points--;
                                 pointTextField.setText("   " + points + "/" + PiccrossView.getGridSize() * PiccrossView.getGridSize() + "  ");
                             } else {
                                 gridButtons[i][j].setBackground(new Color(220, 220, 220));
@@ -413,7 +412,7 @@ public class PiccrossModel {
     }
 
     /**
-     * This method will setup hints for our game depending on what is inside random
+     * This method will set up hints for our game depending on what is inside random
      * generated boxes.
      */
     public void setupHints() {
@@ -538,7 +537,7 @@ public class PiccrossModel {
          */
         private static final long serialVersionUID = 1;
         /**
-         * Used to save the hints which will be a integer value
+         * Used to save the hints which will be an integer value
          */
         protected int[] value;
 
@@ -553,17 +552,17 @@ public class PiccrossModel {
         /**
          * This method is a setter which will set the value array.
          *
-         * @param value
+         * @param value Represents the int array that holds the hints.
          */
         public void setValue(int[] value) {
             this.value = Arrays.copyOf(value, value.length);
         }
 
         /**
-         * This method is a getter which will return a signle index of value array.
+         * This method is a getter which will return a single index of value array.
          *
-         * @param index
-         * @return
+         * @param index Represents the index of int value array.
+         * @return Returns a value on single index of value array.
          */
         public int getValue(int index) {
             return this.value[index];

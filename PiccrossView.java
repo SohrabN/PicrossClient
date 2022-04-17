@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
+import java.util.Objects;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
@@ -20,13 +21,41 @@ import javax.swing.border.LineBorder;
  * @author Sohrab.N
  */
 public class PiccrossView extends JFrame {
+    /**
+     * Represents the game in 0 and 1 for sending it to server.
+     */
     static String gameBoolVec;
+
+    /**
+     * Represents the input received from server to client.
+     */
     BufferedReader input;
+
+    /**
+     * Represents the out going string or output from client to server.
+     */
     static PrintStream out;
+
+    /**
+     * Represents the socket that we make the connection to server.
+     */
     static Socket socket;
+
+    /**
+     * PiccrossNetworkModalVC object which will be used as backend of dialog box for connecting to server.
+     */
     static PiccrossNetworkModalVC connect;
+
+    /**
+     * Represents a boolean value that shows if we are connected to a server or not.
+     */
     boolean connected = false;
+
+    /**
+     * Represents a thread which will run the PicrossNetworkController run method.
+     */
     Thread thread;
+
     /**
      * Represents if we are debugging the code or not.
      */
@@ -69,51 +98,57 @@ public class PiccrossView extends JFrame {
     /**
      * westPanel represent the panel on left side of frame.
      */
-    private JPanel westPanel = new JPanel();
+    private final JPanel westPanel = new JPanel();
 
     /**
      * markAndLogoPanel will hold logo and mark panel. markAndLogoPanel is placed at
      * PAGE_START of westPanel.
      */
-    private JPanel markAndLogoPanel = new JPanel();
+    private final JPanel markAndLogoPanel = new JPanel();
 
     /**
      * consolePanel will hold point panel, timer panel and scroll pane inside it
      * self. consolePanel is placed at CENTER of westPanel.
      */
-    private JPanel consolePanel = new JPanel();
+    private final JPanel consolePanel = new JPanel();
 
     /**
      * pointPanel will hold pointTextField.pointPanel is placed at NORTH of
      * consolePanel.
      */
-    private JPanel pointPanel = new JPanel();
+    private final JPanel pointPanel = new JPanel();
 
     /**
      * timerPanel which will show the time since game has been started.
      */
-    private JPanel timerPanel = new JPanel();
+    private final JPanel timerPanel = new JPanel();
 
-    private JPanel consoleInputPanel = new JPanel();
+    /**
+     * Represents the area where user can see the output from the game and server.
+     */
+    private final JPanel consoleInputPanel = new JPanel();
+
+    /**
+     * Represents the input area where user can enter commands or chat with other players when connected to server.
+     */
     private JTextField consoleInput;
 
-    // other components of our panels.
     /**
      * logoLabel will hold the logo to our Picross game.logoLabel is placed at
      * PAGE_START of markAndLogoPanel.
      */
-    private JLabel logoLabel = new JLabel();
+    private final JLabel logoLabel = new JLabel();
 
     /**
      * pointLabel will display "Points : " in our Picross game.pointLabel is a label
      * inside pointPanel.
      */
-    private JLabel pointLabel = new JLabel();
+    private final JLabel pointLabel = new JLabel();
 
     /**
      * resetButton will restart our game (CURRENTLY NOT WORKING).
      */
-    private JButton resetButton = new JButton();
+    private final JButton resetButton = new JButton();
 
     /**
      * consoleOutputTextArea will display outputs to the player. it will be used inside
@@ -125,24 +160,19 @@ public class PiccrossView extends JFrame {
      * scrollerScrollPane will hold consoleOutputTextArea and will add scroll ability to
      * it.scrollerScrollPane is placed at SOUTH of consolePanel.
      */
-    private JScrollPane scrollerScrollPane;
+    private final JScrollPane scrollerScrollPane;
 
     /**
      * MarkCheckBox will display a message if its change and display another message
      * if set to uncheck.MarkCheckBox is placed at CENTER of markAndLogoPanel.
      */
-    private JCheckBox MarkCheckBox = new JCheckBox();
+    private final JCheckBox MarkCheckBox = new JCheckBox();
 
     /**
      * timerLabel will display the current time of playing game.timerLabel is a
      * component of timerPanel.
      */
     private static JLabel timerLabel;
-
-    /**
-     * used to track the start time of time.
-     */
-    private static long startTimer = System.currentTimeMillis();
 
     /**
      * used to indicate if the game is finished.
@@ -152,19 +182,21 @@ public class PiccrossView extends JFrame {
     /**
      * Used to add menu bar to UI.
      */
-    private JMenuBar menuBar;
+    private final JMenuBar menuBar;
 
     /**
-     * Used to add menu to UI.
+     * Represents the JMenuItem object for connecting to server.
      */
-    private JMenu menu, subMenu;
-
-    /**
-     * Used to add menu items to UI.
-     */
-    private JMenuItem menuItem;
     private JMenuItem menuItemConnect;
+
+    /**
+     * Represents the JMenuItem object for disconnect to server.
+     */
     private JMenuItem menuItemDisconnect;
+
+    /**
+     * Represents the object of ControllableTimer class which is used for timer.
+     */
     private static ControllableTimer timer;
 
     /**
@@ -176,16 +208,16 @@ public class PiccrossView extends JFrame {
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         piccrossModel = new PiccrossModel();
-        // Exiting the program if mainFrame is close
-        //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         timerLabel = new JLabel("");
         connect = new PiccrossNetworkModalVC(this);
         consoleOutputTextArea = new JTextArea(24, 30);
         scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    /**
+     * Picross class object constructor that will be called if a new game is called after running the initial game.
+     */
     public PiccrossView(Socket socket, JTextArea consoleOutputTextArea, boolean connected) {
         // setting name of frame
         super("Picross 3.0");
@@ -195,17 +227,13 @@ public class PiccrossView extends JFrame {
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         piccrossModel = new PiccrossModel();
-        // Exiting the program if mainFrame is close
-        //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         timerLabel = new JLabel("");
         connect = new PiccrossNetworkModalVC(this);
-//        consoleOutputTextArea = new JTextArea(24, 30);
         scrollerScrollPane = new JScrollPane(consoleOutputTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         if (this.connected) {
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-
                     consoleInput.setText("/bye");
                     consoleInput.dispatchEvent(new KeyEvent(consoleInput, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER));
                     try {
@@ -214,18 +242,13 @@ public class PiccrossView extends JFrame {
                         ex.printStackTrace();
                     }
                     mainFrame.connected = false;
-                    menuItemConnect.setEnabled(true);
-                    menuItemDisconnect.setEnabled(false);
-
                     System.exit(0);
                 }
             });
         } else {
             this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         }
-
     }
-
 
     /**
      * This method will created a new frame, setups the the frame and the grid and
@@ -240,7 +263,6 @@ public class PiccrossView extends JFrame {
         gridSize = gameSize;
         // creating new object of Picross class and storing it in mainFrame
         mainFrame = this;
-
         URL iconURL = getClass().getResource(iconPath);
         if (iconURL == null) {
             System.err.println("ERROR: ICON PATH NOT FOUND. PLEASE CHECK THE iconPath VARIABLE.");
@@ -248,9 +270,7 @@ public class PiccrossView extends JFrame {
         }
         ImageIcon img = new ImageIcon(iconURL);
         mainFrame.setIconImage(img.getImage());
-
         piccrossModel.setShowSolution(false);
-
         gameIsDone = false;
         // sets up the menu bar
         mainFrame.buildMenu();
@@ -276,13 +296,11 @@ public class PiccrossView extends JFrame {
         consoleFixedText.setText("console>");
         consoleFixedText.setEditable(false);
         mainFrame.add(consoleInputPanel, BorderLayout.SOUTH);
-//        consoleInputPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         consoleInputPanel.setLayout(new BorderLayout());
         consoleInputPanel.add(consoleFixedText, BorderLayout.WEST);
         Dimension size = mainFrame.getSize();
         consoleInput = new JTextField(null, (size.width / 11) - 7);
         consoleInputPanel.add(consoleInput, BorderLayout.EAST);
-
 
         // west panel setup
         westPanel.setBackground(new Color(248, 244, 244));
@@ -312,7 +330,6 @@ public class PiccrossView extends JFrame {
         consoleInput.addKeyListener(new textAreaListener());
         // timer panel setup
         timerPanel.setPreferredSize(new Dimension(250, 50));
-
         timerLabel.setFont(new Font("TimesNewRoman", Font.BOLD, 14));
         timerLabel.setText("00" + ":" + "00" + ":" + "00");
         timerPanel.add(timerLabel);
@@ -320,7 +337,6 @@ public class PiccrossView extends JFrame {
         // point panel setup
         pointLabel.setText("Points : ");
         pointPanel.add(pointLabel, new BorderLayout(5, 5));
-        // picrossModel.getPointTextField().setText(" ");
         piccrossModel.getPointTextField().setEditable(false);
         piccrossModel.getPointTextField().setBackground(Color.WHITE);
         piccrossModel.getPointTextField().setText("   " + 0 + "/" + gridSize * gridSize + "  ");
@@ -352,44 +368,26 @@ public class PiccrossView extends JFrame {
         resetButton.addActionListener(new reset());
         timer = new ControllableTimer(mainFrame);
         timer.start();
-
-        // starting time // was not able to make it work with your timer code. need help
-        // regarding to that during the lab.
-//        new Thread(new Runnable() {
-//            public void run() {
-//                try {
-//                    updateTime();
-//                } catch (Exception ie) {
-//                }
-//            }
-//        }).start();
-
         return 0;
     }
 
+    /**
+     * This method is a getter to timer object.
+     *
+     * @return Returns timer object which is ControllableTimer object that used to start stop restart and terminal the timer.
+     */
     public static ControllableTimer getTimer() {
         return timer;
     }
 
+    /**
+     * This method is a getter to timer object.
+     *
+     * @return Returns timerLabel object which is JLabel object that used to show time that user spent on each game.
+     */
     public JLabel getTimerLabel() {
         return timerLabel;
     }
-    /**
-     * This method will update the time in every 1 second interval.
-     */
-//    public void updateTime() {
-//        try {
-//            while (!gameIsDone) {
-//                // geting Time in desire format
-//                timerLabel.setText(getTimeElapsed());
-//                Thread.currentThread();
-//                // thread sleeping for 1 sec
-//                Thread.sleep(1000);
-//            }
-//        } catch (Exception e) {
-//            System.out.println("Exception in Thread Sleep : " + e);
-//        }
-//    }
 
     /**
      * This method will calculate the time that our game has been running and
@@ -398,32 +396,11 @@ public class PiccrossView extends JFrame {
      * @return String is returned to the calling which will be the time since game
      * has been started.
      */
-//    public static String getTimeElapsed() {
-//        // getting time since the game has been started
-//        long elapsedTime = System.currentTimeMillis() - startTimer;
-//        // converting millisecond to second
-//        elapsedTime = elapsedTime / 1000;
-//
-//        String seconds = Integer.toString((int) (elapsedTime % 60));
-//        String minutes = Integer.toString((int) ((elapsedTime % 3600) / 60));
-//        String hours = Integer.toString((int) (elapsedTime / 3600));
-//
-//        if (seconds.length() < 2) seconds = "0" + seconds;
-//
-//        if (minutes.length() < 2) minutes = "0" + minutes;
-//
-//        if (hours.length() < 2) hours = "0" + hours;
-//        // returning the timer in correct format
-//        return hours + ":" + minutes + ":" + seconds;
-//    }
     public static String getTimeElapsed(int elapsed) {
         // getting time since the game has been started
-        long elapsedTime = elapsed;
-
-
-        String seconds = Integer.toString((int) (elapsedTime % 60));
-        String minutes = Integer.toString((int) ((elapsedTime % 3600) / 60));
-        String hours = Integer.toString((int) (elapsedTime / 3600));
+        String seconds = Integer.toString((int) ((long) elapsed % 60));
+        String minutes = Integer.toString((int) (((long) elapsed % 3600) / 60));
+        String hours = Integer.toString((int) ((long) elapsed / 3600));
 
         if (seconds.length() < 2) seconds = "0" + seconds;
 
@@ -431,14 +408,22 @@ public class PiccrossView extends JFrame {
 
         if (hours.length() < 2) hours = "0" + hours;
         // returning the timer in correct format
-        mainFrame.timerLabel.setText(hours + ":" + minutes + ":" + seconds);
+        timerLabel.setText(hours + ":" + minutes + ":" + seconds);
         return hours + ":" + minutes + ":" + seconds;
     }
 
+    /**
+     * This method is a getter to String gameBoolVec object.
+     * @return Returns gameBoolVec which represent the game in string format as 0 and 1 which will be used to send the game to server.
+     */
     public static String getGameBoolVec() {
         return gameBoolVec;
     }
 
+    /**
+     * This method is a getter to JTextArea consoleOutputTextArea which represents the text area that user will see output of program or server.
+     * @return Returns consoleOutputTextArea.
+     */
     public static JTextArea getConsoleOutputTextArea() {
         return consoleOutputTextArea;
     }
@@ -473,11 +458,9 @@ public class PiccrossView extends JFrame {
     private class reset implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            startTimer = System.currentTimeMillis();
             timer.setStatus(ControllableTimer.RESET);
             timer.setStatus(ControllableTimer.START);
-            if (piccrossModel.isShowSolution())
-                piccrossModel.showSolution();
+            if (piccrossModel.isShowSolution()) piccrossModel.showSolution();
             timerLabel.setText("00:00:00");
             piccrossModel.resetGame();
             gameIsDone = false;
@@ -486,11 +469,11 @@ public class PiccrossView extends JFrame {
 
     /**
      * ActionListener for show about in menu which will pop up a dialog windows and
-     * shows information regarding to software.
+     * shows information regarding software.
      *
      * @author Sohrab.N
      */
-    private class showAbout implements ActionListener {
+    private static class showAbout implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -531,6 +514,9 @@ public class PiccrossView extends JFrame {
         }
     }
 
+    /**
+     * This class will implement ActionListener and will set the size of game to 5*5 when selected from menu.
+     */
     private class setSize5 implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -545,6 +531,9 @@ public class PiccrossView extends JFrame {
         }
     }
 
+    /**
+     * This class will implement ActionListener and will set the size of game to 10*10 when selected from menu.
+     */
     private class setSize10 implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -559,6 +548,9 @@ public class PiccrossView extends JFrame {
         }
     }
 
+    /**
+     * This class will implement ActionListener and will set the size of game to 15*15 when selected from menu.
+     */
     private class setSize15 implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -604,7 +596,7 @@ public class PiccrossView extends JFrame {
      *
      * @author Sohrab.N
      */
-    private class debugConfig1 implements ActionListener {
+    private static class debugConfig1 implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -622,7 +614,7 @@ public class PiccrossView extends JFrame {
      *
      * @author Sohrab.N
      */
-    private class debugConfig2 implements ActionListener {
+    private static class debugConfig2 implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -640,7 +632,7 @@ public class PiccrossView extends JFrame {
      *
      * @author Sohrab.N
      */
-    private class debugConfig3 implements ActionListener {
+    private static class debugConfig3 implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -652,6 +644,9 @@ public class PiccrossView extends JFrame {
         }
     }
 
+    /**
+     * This class will implement ActionListener and will open a dialog box to get information from user and try connects to server.
+     */
     private class openConnection extends Thread implements ActionListener {
 
         @Override
@@ -731,6 +726,9 @@ public class PiccrossView extends JFrame {
         }
     }
 
+    /**
+     * This class will implement ActionListener and disconnects from server if selected from menu.
+     */
     private class disconnect implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -757,8 +755,10 @@ public class PiccrossView extends JFrame {
         }
     }
 
+    /**
+     * This class will implement KeyListener and will implement the lister for console input text area so when ever user press enter key it will execute the code.
+     */
     private class textAreaListener implements KeyListener {
-
 
         @Override
         public void keyTyped(KeyEvent e) {
@@ -797,12 +797,14 @@ public class PiccrossView extends JFrame {
         }
     }
 
-    private class hoverToggle implements ActionListener {
+    /**
+     * This method will implement ActionListener and will enable or disable hover feature of the game.
+     */
+    private static class hoverToggle implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (hover) hover = false;
-            else hover = true;
+            hover = !hover;
         }
     }
 
@@ -814,18 +816,18 @@ public class PiccrossView extends JFrame {
 
         ImageIcon picLogo;
         // creating game menu
-        menu = new JMenu("Game");
+        JMenu menu = new JMenu("Game");
         // creating new menu item
-        menuItem = new JMenuItem("New");
-        picLogo = new ImageIcon(this.getClass().getResource("NewGameIcon.png"));
+        JMenuItem menuItem = new JMenuItem("New");
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("NewGameIcon.png")));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new newGame());
         KeyStroke ctrlVKeyStroke = KeyStroke.getKeyStroke("control N");
         menuItem.setAccelerator(ctrlVKeyStroke);
         menu.add(menuItem);
         menu.addSeparator();
-        subMenu = new JMenu("Set Game Size");
-        picLogo = new ImageIcon(this.getClass().getResource("SetGameSizeIcon.png"));
+        JMenu subMenu = new JMenu("Set Game Size");
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("SetGameSizeIcon.png")));
         subMenu.setIcon(picLogo);
         menuItem = new JMenuItem("5 x 5");
         menuItem.addActionListener(new setSize5());
@@ -841,14 +843,14 @@ public class PiccrossView extends JFrame {
         menu.add(subMenu);
         menu.addSeparator();
         menuItem = new JMenuItem("Toggle ON/OFF Mouse Hover");
-        picLogo = new ImageIcon(this.getClass().getResource("MouseHoverIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("MouseHoverIcon.png")));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new hoverToggle());
         menu.add(menuItem);
         menu.addSeparator();
         // creating debug sub menu
         subMenu = new JMenu("Debug");
-        picLogo = new ImageIcon(this.getClass().getResource("DebugIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("DebugIcon.png")));
         subMenu.setIcon(picLogo);
         // creating debug sub menu item 1
         menuItem = new JMenuItem("Debug Configuration 1");
@@ -866,7 +868,7 @@ public class PiccrossView extends JFrame {
         menu.addSeparator();
         // creating exit menu item
         menuItem = new JMenuItem("Exit");
-        picLogo = new ImageIcon(this.getClass().getResource("ExitIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("ExitIcon.png")));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new exit());
         ctrlVKeyStroke = KeyStroke.getKeyStroke("control Q");
@@ -876,12 +878,12 @@ public class PiccrossView extends JFrame {
         menu = new JMenu("Networking");
         // creating solution menu item
         menuItemConnect = new JMenuItem("New Connection");
-        picLogo = new ImageIcon(this.getClass().getResource("ConnectIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("ConnectIcon.png")));
         menuItemConnect.setIcon(picLogo);
         menuItemConnect.addActionListener(new openConnection());
         menu.add(menuItemConnect);
         menuItemDisconnect = new JMenuItem("Disconnect");
-        picLogo = new ImageIcon(this.getClass().getResource("DisconnectIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("DisconnectIcon.png")));
         menuItemDisconnect.setIcon(picLogo);
         menuItemDisconnect.addActionListener(new disconnect());
         menuItemDisconnect.setEnabled(false);
@@ -892,7 +894,7 @@ public class PiccrossView extends JFrame {
         menu = new JMenu("Help");
         // creating solution menu item
         menuItem = new JMenuItem("Solution");
-        picLogo = new ImageIcon(this.getClass().getResource("ShowSolutionIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("ShowSolutionIcon.png")));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new showSolution());
         ctrlVKeyStroke = KeyStroke.getKeyStroke("alt S");
@@ -900,7 +902,7 @@ public class PiccrossView extends JFrame {
         menu.add(menuItem);
         // creating about menu item
         menuItem = new JMenuItem("About");
-        picLogo = new ImageIcon(this.getClass().getResource("AboutIcon.png"));
+        picLogo = new ImageIcon(Objects.requireNonNull(this.getClass().getResource("AboutIcon.png")));
         menuItem.setIcon(picLogo);
         menuItem.addActionListener(new showAbout());
         ctrlVKeyStroke = KeyStroke.getKeyStroke("alt A");
@@ -941,10 +943,11 @@ public class PiccrossView extends JFrame {
         return hover;
     }
 
-    public static Socket getSocket() {
-        return socket;
-    }
-
+    /**
+     * This method is a getter for Socket which represents the socket that clients makes the connection to server.
+     * @return Returns socket which is client socket from client to server.
+     */
+    public static Socket getSocket() {return socket;}
 
     /**
      * This method is a getter for gameIsDone variable.
@@ -955,6 +958,10 @@ public class PiccrossView extends JFrame {
         return gameIsDone;
     }
 
+    /**
+     * This method will send a message in string to server. It can be command, or it can be just regular chat.
+     * @param message Represents the message in String entered by user.
+     */
     public void sendMessage(String message) {
 
         out.println(message);
@@ -963,6 +970,11 @@ public class PiccrossView extends JFrame {
 
     }
 
+    /**
+     * This method will check the message entered by user and tries to match which one of the case below.
+     * @param message Represents the message in String entered by user.
+     * @return Returns 0 and 1, if 0 means send the message to server, if 1 it means do not send message to server and message will be used locally.
+     */
     public int checkMessage(String message) {
 
         if (message.contains("/bye")) {
@@ -1004,6 +1016,9 @@ public class PiccrossView extends JFrame {
         PiccrossView.gameIsDone = gameIsDone;
     }
 
+    /**
+     *
+     */
     class PicrossNetworkController extends Thread {
         public void run() {
             String message;
