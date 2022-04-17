@@ -3,7 +3,7 @@
  * Student Number 040770197
  * Course: CST8221 - Java Applications
  * CET-CS-Level 4
- * @Version 1.0
+ * @Version 3.0
  */
 package piccross;
 

@@ -3,7 +3,7 @@
  * Student Number 040770197
  * Course: CST8221 - Java Applications
  * CET-CS-Level 4
- * @Version 1.0
+ * @Version 3.0
  */
 package piccross;
 
@@ -217,6 +217,9 @@ public class PiccrossView extends JFrame {
 
     /**
      * Picross class object constructor that will be called if a new game is called after running the initial game.
+     * @param socket represents clients socket object which holds the connection to server.
+     * @param consoleOutputTextArea represents the JTextArea where program and server will output their information.
+     * @param connected represents the boolean value that shows if client is connected to server or not.
      */
     public PiccrossView(Socket socket, JTextArea consoleOutputTextArea, boolean connected) {
         // setting name of frame
@@ -253,8 +256,8 @@ public class PiccrossView extends JFrame {
     /**
      * This method will created a new frame, setups the the frame and the grid and
      * then add the other panels and components.
-     *
-     * @return it will return a integer not -1 shows method has been ran
+     * @param gameSize represents the game size set by user. By difficult this value is 5 for 5*5 game but can be changed to anything.
+     * @return it will return a integer not -1 shows method has been run.
      * successfully if -1 shows there was error.
      */
     public int startGUI(int gameSize) {
@@ -392,7 +395,7 @@ public class PiccrossView extends JFrame {
     /**
      * This method will calculate the time that our game has been running and
      * returns it as string in proper format.
-     *
+     * @param elapsed represents the time since the game started.
      * @return String is returned to the calling which will be the time since game
      * has been started.
      */
@@ -414,6 +417,7 @@ public class PiccrossView extends JFrame {
 
     /**
      * This method is a getter to String gameBoolVec object.
+     *
      * @return Returns gameBoolVec which represent the game in string format as 0 and 1 which will be used to send the game to server.
      */
     public static String getGameBoolVec() {
@@ -422,6 +426,7 @@ public class PiccrossView extends JFrame {
 
     /**
      * This method is a getter to JTextArea consoleOutputTextArea which represents the text area that user will see output of program or server.
+     *
      * @return Returns consoleOutputTextArea.
      */
     public static JTextArea getConsoleOutputTextArea() {
@@ -945,9 +950,12 @@ public class PiccrossView extends JFrame {
 
     /**
      * This method is a getter for Socket which represents the socket that clients makes the connection to server.
+     *
      * @return Returns socket which is client socket from client to server.
      */
-    public static Socket getSocket() {return socket;}
+    public static Socket getSocket() {
+        return socket;
+    }
 
     /**
      * This method is a getter for gameIsDone variable.
@@ -960,6 +968,7 @@ public class PiccrossView extends JFrame {
 
     /**
      * This method will send a message in string to server. It can be command, or it can be just regular chat.
+     *
      * @param message Represents the message in String entered by user.
      */
     public void sendMessage(String message) {
@@ -972,6 +981,7 @@ public class PiccrossView extends JFrame {
 
     /**
      * This method will check the message entered by user and tries to match which one of the case below.
+     *
      * @param message Represents the message in String entered by user.
      * @return Returns 0 and 1, if 0 means send the message to server, if 1 it means do not send message to server and message will be used locally.
      */
@@ -1017,7 +1027,7 @@ public class PiccrossView extends JFrame {
     }
 
     /**
-     *
+     * This class which extends Thread will be used to run the network controller thread so while we are reading messages from server user will be still able to play the game.
      */
     class PicrossNetworkController extends Thread {
         public void run() {

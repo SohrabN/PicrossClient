@@ -3,11 +3,12 @@
  * Student Number 040770197
  * Course: CST8221 - Java Applications
  * CET-CS-Level 4
- * @Version 1.0
+ * @Version 3.0
  */
 package piccross;
 
 import java.awt.*;
+import java.util.Objects;
 import javax.swing.*;
 
 /**
@@ -22,6 +23,7 @@ public class PiccrossSplashScreen extends JWindow {
 
     /**
      * Beginning of PiccrossSplashScreen - Allows the duration
+     * @param duration represents the int value in milliseconds to display the splash screen.
      */
     public PiccrossSplashScreen(int duration) {
         this.duration = duration;
@@ -56,7 +58,7 @@ public class PiccrossSplashScreen extends JWindow {
         /**
          * Images and text
          */
-        JLabel label = new JLabel(new ImageIcon(getClass().getResource("piccrossNameMin.jpg")));
+        JLabel label = new JLabel(new ImageIcon(Objects.requireNonNull(getClass().getResource("piccrossNameMin.jpg"))));
         JLabel demo = new JLabel("Sohrab Najafzadeh , Student ID: 040770197", JLabel.CENTER);
         demo.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 14));
         content.add(label, BorderLayout.CENTER);

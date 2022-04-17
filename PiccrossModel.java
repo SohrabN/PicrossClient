@@ -1,3 +1,10 @@
+/**
+ * @author Sohrab Najafzadeh
+ * Student Number 040770197
+ * Course: CST8221 - Java Applications
+ * CET-CS-Level 4
+ * @Version 3.0
+ */
 package piccross;
 
 import javax.imageio.ImageIO;
@@ -149,6 +156,8 @@ public class PiccrossModel {
      *
      * @param i represents the index for our 2D-Array of buttons.
      * @param j represents the index for our 2D-Array of buttons.
+     * @param debugMode represents in which mode setup method will be called.
+     * @return Returns true if button is true and false if button is false.
      */
     private boolean setup(int i, int j, int debugMode) {
         boolean bool = false;
@@ -543,6 +552,7 @@ public class PiccrossModel {
 
         /**
          * numPanel class object constructor.
+         * @param gridSize represents the grid size which will be an int value example: if gridSize=5 game is 5*5.
          */
         public numPanel(int gridSize) {
             super();
